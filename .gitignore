@@ -48,3 +48,8 @@ data/
 
 # claude
 .claude
+
+# local tooling and editor state
+.codex/
+.idea/
+.vscode/
