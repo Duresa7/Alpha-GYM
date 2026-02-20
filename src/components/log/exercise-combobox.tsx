@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EXERCISE_CATEGORY_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -23,13 +24,6 @@ interface ExerciseComboboxProps {
   value: string;
   onChange: (value: string) => void;
 }
-
-const categoryLabels: Record<string, string> = {
-  calisthenics: "Calisthenics",
-  cardio: "Cardio",
-  upper_body: "Upper Body",
-  lower_body: "Lower Body",
-};
 
 export function ExerciseCombobox({
   exerciseNames,
@@ -65,7 +59,7 @@ export function ExerciseCombobox({
             {Object.entries(grouped).map(([category, items]) => (
               <CommandGroup
                 key={category}
-                heading={categoryLabels[category] || category}
+                heading={EXERCISE_CATEGORY_LABELS[category] || category}
               >
                 {items.map((ex) => (
                   <CommandItem
