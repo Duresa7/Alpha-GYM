@@ -26,19 +26,25 @@ Local-first gym and body-weight tracker built with Next.js, Tailwind, shadcn/ui,
 npm install
 ```
 
-2. Push schema to local SQLite DB:
+2. Create environment file:
+
+```bash
+Copy-Item .env.example .env
+```
+
+3. Push schema to local SQLite DB:
 
 ```bash
 npm run db:push
 ```
 
-3. Seed exercise list and weekly plan:
+4. Seed exercise list and weekly plan:
 
 ```bash
 npm run db:seed
 ```
 
-4. Start development server:
+5. Start development server:
 
 ```bash
 npm run dev
@@ -59,7 +65,7 @@ The app runs at `http://localhost:3000`.
 
 ## Database
 
-- DB file: `./data/alpha-gym.db`
+- DB file: value of `DB_FILE_NAME` in `.env` (defaults to `./data/alpha-gym.db`)
 - Tables:
   - `exercises`
   - `cardio`

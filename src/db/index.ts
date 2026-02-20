@@ -4,7 +4,10 @@ import * as schema from "./schema";
 import path from "path";
 import fs from "fs";
 
-const dbPath = path.resolve(process.cwd(), "data", "alpha-gym.db");
+const dbFileName = process.env.DB_FILE_NAME?.trim() || "./data/alpha-gym.db";
+const dbPath = path.isAbsolute(dbFileName)
+  ? dbFileName
+  : path.resolve(process.cwd(), dbFileName);
 
 const dataDir = path.dirname(dbPath);
 if (!fs.existsSync(dataDir)) {

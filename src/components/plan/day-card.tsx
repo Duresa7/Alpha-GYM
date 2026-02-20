@@ -21,7 +21,6 @@ const sectionLabels: Record<string, string> = {
 export function DayCard({ dayOfWeek, items, isToday }: DayCardProps) {
   const dayInfo = DAY_LABELS[dayOfWeek];
 
-  // Group items by section
   const sections: Record<string, WeeklyPlanItem[]> = {};
   for (const item of items) {
     if (!sections[item.section]) sections[item.section] = [];

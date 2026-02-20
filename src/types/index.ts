@@ -1,10 +1,3 @@
-export interface StatCardData {
-  title: string;
-  value: string | number;
-  icon: string;
-  trend?: "up" | "down" | "neutral";
-}
-
 export interface WeightTrendPoint {
   date: string;
   weightLbs: number;

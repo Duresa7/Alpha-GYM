@@ -1,24 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  EXERCISE_CATEGORY_BADGE_CLASSES,
+  EXERCISE_CATEGORY_LABELS,
+} from "@/lib/constants";
 import type { ExerciseListItem } from "@/types";
 
 interface ExerciseListProps {
   exercises: ExerciseListItem[];
 }
-
-const categoryColors: Record<string, string> = {
-  calisthenics: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  cardio: "bg-green-500/20 text-green-400 border-green-500/30",
-  upper_body: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  lower_body: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-};
-
-const categoryLabels: Record<string, string> = {
-  calisthenics: "Calisthenics",
-  cardio: "Cardio",
-  upper_body: "Upper Body",
-  lower_body: "Lower Body",
-};
 
 export function ExerciseListComponent({ exercises }: ExerciseListProps) {
   return (
@@ -37,9 +27,9 @@ export function ExerciseListComponent({ exercises }: ExerciseListProps) {
               </div>
               <Badge
                 variant="outline"
-                className={categoryColors[exercise.category] || ""}
+                className={EXERCISE_CATEGORY_BADGE_CLASSES[exercise.category] || ""}
               >
-                {categoryLabels[exercise.category] || exercise.category}
+                {EXERCISE_CATEGORY_LABELS[exercise.category] || exercise.category}
               </Badge>
             </div>
           </CardContent>
