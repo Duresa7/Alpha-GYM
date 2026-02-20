@@ -16,24 +16,24 @@ export function StatCard({
   color = "orange",
 }: StatCardProps) {
   const colorClasses = {
-    orange: "text-orange-400",
-    green: "text-green-400",
-    muted: "text-muted-foreground",
+    orange: "text-orange-300",
+    green: "text-green-300",
+    muted: "text-sky-300",
   };
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="app-surface panel-hover overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="mt-1 text-2xl font-bold font-[family-name:var(--font-barlow-condensed)]">
+            <p className="text-sm uppercase tracking-wide text-muted-foreground">{title}</p>
+            <p className="mt-1 text-3xl font-bold font-[family-name:var(--font-barlow-condensed)]">
               {value}
             </p>
           </div>
           <div
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-lg bg-muted",
+              "flex h-12 w-12 items-center justify-center rounded-xl border border-border/70 bg-gradient-to-br from-muted to-muted/60",
               colorClasses[color]
             )}
           >

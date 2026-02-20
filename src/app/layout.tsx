@@ -31,9 +31,12 @@ export default function RootLayout({
       <body
         className={`${barlowCondensed.variable} ${barlow.variable} font-[family-name:var(--font-barlow)] antialiased`}
       >
-        <div className="flex min-h-screen bg-background">
+        <div className="relative flex min-h-screen bg-background">
           <AppSidebar />
-          <main className="flex-1 overflow-auto p-6 lg:p-8">{children}</main>
+          <main className="relative flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" />
+            <div className="relative mx-auto w-full max-w-7xl">{children}</div>
+          </main>
         </div>
         <Toaster />
       </body>

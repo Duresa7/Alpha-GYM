@@ -25,7 +25,7 @@ export const DAY_LABELS: Record<string, { label: string; focus: string; duration
 export const SECTION_COLORS: Record<string, string> = {
   strength: "bg-orange-500/20 text-orange-400 border-orange-500/30",
   cardio: "bg-green-500/20 text-green-400 border-green-500/30",
-  core: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  core: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   circuit: "bg-red-500/20 text-red-400 border-red-500/30",
   mobility: "bg-blue-500/20 text-blue-400 border-blue-500/30",
 };

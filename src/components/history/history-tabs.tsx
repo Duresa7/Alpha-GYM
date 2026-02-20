@@ -137,7 +137,7 @@ export function HistoryTabs({
   return (
     <>
       <Tabs defaultValue="exercises">
-        <TabsList>
+        <TabsList className="bg-muted/40">
           <TabsTrigger value="exercises" className="cursor-pointer">
             Exercises ({exerciseLogs.length})
           </TabsTrigger>

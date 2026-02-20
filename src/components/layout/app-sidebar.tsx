@@ -23,15 +23,18 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-border bg-card">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <Dumbbell className="h-7 w-7 text-primary" />
-        <span className="text-xl font-bold tracking-wider text-primary font-[family-name:var(--font-barlow-condensed)]">
+    <aside className="sticky top-0 flex h-screen w-20 flex-col border-r border-sidebar-border/80 bg-sidebar/90 backdrop-blur-sm sm:w-64">
+      <div className="relative flex h-20 items-center gap-3 border-b border-sidebar-border/80 px-4 sm:px-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/12 via-primary/6 to-transparent" />
+        <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-primary/40 bg-primary/15 text-primary">
+          <Dumbbell className="h-6 w-6" />
+        </div>
+        <span className="hidden text-xl font-bold tracking-wider text-primary font-[family-name:var(--font-barlow-condensed)] sm:block">
           ALPHA GYM
         </span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-2 py-4 sm:px-3">
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
@@ -43,21 +46,21 @@ export function AppSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer",
+                "flex items-center justify-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 cursor-pointer sm:justify-start",
                 isActive
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary/20 text-primary shadow-[inset_0_0_0_1px_rgba(249,115,22,0.35)]"
+                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
               )}
             >
               <item.icon className="h-5 w-5" />
-              {item.label}
+              <span className="hidden sm:inline">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-border px-6 py-4">
-        <p className="text-xs text-muted-foreground">
+      <div className="border-t border-sidebar-border/80 px-3 py-4 sm:px-6">
+        <p className="hidden text-xs text-muted-foreground sm:block">
           Track. Push. Progress.
         </p>
       </div>

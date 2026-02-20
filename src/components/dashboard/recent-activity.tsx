@@ -22,7 +22,7 @@ const typeColors: Record<string, string> = {
 
 export function RecentActivity({ entries }: RecentActivityProps) {
   return (
-    <Card className="border-border bg-card">
+    <Card className="app-surface panel-hover">
       <CardHeader>
         <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-lg">
           Recent Activity
@@ -30,15 +30,15 @@ export function RecentActivity({ entries }: RecentActivityProps) {
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
-          <p className="text-muted-foreground">
-            No workouts logged yet. Start tracking!
-          </p>
+          <div className="rounded-xl border border-dashed border-border/80 bg-muted/35 p-5 text-muted-foreground">
+            No workouts logged yet. Head to Log Workout to start tracking.
+          </div>
         ) : (
           <div className="space-y-3">
             {entries.map((entry, i) => (
               <div
                 key={`${entry.date}-${i}`}
-                className="flex items-center justify-between rounded-lg border border-border p-3"
+                className="flex items-center justify-between rounded-xl border border-border/85 bg-muted/20 p-3 transition-colors duration-200 hover:bg-muted/40"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium">
@@ -59,7 +59,7 @@ export function RecentActivity({ entries }: RecentActivityProps) {
                   </Badge>
                 </div>
                 {entry.notes && (
-                  <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                  <span className="max-w-[200px] truncate text-sm text-muted-foreground">
                     {entry.notes}
                   </span>
                 )}

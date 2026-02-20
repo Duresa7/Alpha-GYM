@@ -10,7 +10,7 @@ const categoryColors: Record<string, string> = {
   calisthenics: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   cardio: "bg-green-500/20 text-green-400 border-green-500/30",
   upper_body: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  lower_body: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  lower_body: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
 };
 
 const categoryLabels: Record<string, string> = {
@@ -22,9 +22,9 @@ const categoryLabels: Record<string, string> = {
 
 export function ExerciseListComponent({ exercises }: ExerciseListProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {exercises.map((exercise) => (
-        <Card key={exercise.id} className="border-border bg-card">
+        <Card key={exercise.id} className="app-surface panel-hover">
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-2">
               <div>

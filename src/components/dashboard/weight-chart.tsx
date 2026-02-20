@@ -19,7 +19,7 @@ interface WeightChartProps {
 export function WeightChart({ data }: WeightChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="border-border bg-card">
+      <Card className="app-surface panel-hover">
         <CardHeader>
           <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-lg">
             Weight Trend
@@ -35,7 +35,7 @@ export function WeightChart({ data }: WeightChartProps) {
   }
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="app-surface panel-hover">
       <CardHeader>
         <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-lg">
           Weight Trend

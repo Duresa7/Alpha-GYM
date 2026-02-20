@@ -31,8 +31,8 @@ export function DayCard({ dayOfWeek, items, isToday }: DayCardProps) {
   return (
     <Card
       className={cn(
-        "border-border bg-card transition-colors",
-        isToday && "border-primary/50 ring-1 ring-primary/20"
+        "app-surface panel-hover transition-all duration-200",
+        isToday && "border-primary/55 ring-2 ring-primary/20"
       )}
     >
       <CardHeader className="pb-3">
@@ -63,11 +63,11 @@ export function DayCard({ dayOfWeek, items, isToday }: DayCardProps) {
             >
               {sectionLabels[section] || section}
             </Badge>
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {sectionItems.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between text-sm"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm"
                 >
                   <span>{item.exerciseName}</span>
                   {item.setsReps && (

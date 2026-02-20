@@ -14,7 +14,7 @@ export default async function ExercisesPage() {
         description="Reference list of all exercises in your program"
       />
       <Tabs defaultValue="all">
-        <TabsList>
+        <TabsList className="bg-muted/40">
           <TabsTrigger value="all" className="cursor-pointer">
             All ({allExercises.length})
           </TabsTrigger>

@@ -19,7 +19,7 @@ interface VolumeChartProps {
 export function VolumeChart({ data }: VolumeChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="border-border bg-card">
+      <Card className="app-surface panel-hover">
         <CardHeader>
           <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-lg">
             Exercise Volume
@@ -35,7 +35,7 @@ export function VolumeChart({ data }: VolumeChartProps) {
   }
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="app-surface panel-hover">
       <CardHeader>
         <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-lg">
           Exercise Volume

@@ -83,39 +83,39 @@
 }
 
 .dark {
-  /* Background: dark slate #1F2937 */
-  --background: oklch(0.24 0.02 260);
+  /* Background: deep night slate */
+  --background: oklch(0.18 0.02 258);
   --foreground: oklch(0.97 0.005 264);
-  --card: oklch(0.28 0.02 260);
+  --card: oklch(0.23 0.022 258);
   --card-foreground: oklch(0.97 0.005 264);
-  --popover: oklch(0.28 0.02 260);
+  --popover: oklch(0.23 0.022 258);
   --popover-foreground: oklch(0.97 0.005 264);
   /* Primary: Orange #F97316 */
   --primary: oklch(0.72 0.19 52);
   --primary-foreground: oklch(0.97 0.005 264);
-  --secondary: oklch(0.32 0.015 260);
+  --secondary: oklch(0.27 0.02 258);
   --secondary-foreground: oklch(0.97 0.005 264);
-  --muted: oklch(0.30 0.015 260);
+  --muted: oklch(0.24 0.018 258);
   --muted-foreground: oklch(0.65 0.02 264);
   /* Accent: Green #22C55E */
   --accent: oklch(0.65 0.2 145);
   --accent-foreground: oklch(0.97 0.005 264);
   --destructive: oklch(0.55 0.2 25);
-  --border: oklch(0.36 0.015 260);
-  --input: oklch(0.36 0.015 260);
+  --border: oklch(0.32 0.02 258);
+  --input: oklch(0.32 0.02 258);
   --ring: oklch(0.72 0.19 52);
   --chart-1: oklch(0.72 0.19 52);
   --chart-2: oklch(0.65 0.2 145);
-  --chart-3: oklch(0.65 0.17 250);
-  --chart-4: oklch(0.70 0.16 300);
+  --chart-3: oklch(0.7 0.13 230);
+  --chart-4: oklch(0.74 0.14 20);
   --chart-5: oklch(0.75 0.15 55);
-  --sidebar: oklch(0.22 0.02 260);
+  --sidebar: oklch(0.2 0.02 258);
   --sidebar-foreground: oklch(0.97 0.005 264);
   --sidebar-primary: oklch(0.72 0.19 52);
   --sidebar-primary-foreground: oklch(0.97 0.005 264);
-  --sidebar-accent: oklch(0.30 0.015 260);
+  --sidebar-accent: oklch(0.24 0.018 258);
   --sidebar-accent-foreground: oklch(0.97 0.005 264);
-  --sidebar-border: oklch(0.36 0.015 260);
+  --sidebar-border: oklch(0.3 0.02 258);
   --sidebar-ring: oklch(0.72 0.19 52);
 }
 
@@ -125,8 +125,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 12% 4%, oklch(0.72 0.19 52 / 0.16), transparent 24%),
+      radial-gradient(circle at 88% 2%, oklch(0.65 0.2 145 / 0.14), transparent 18%),
+      linear-gradient(180deg, oklch(0.2 0.02 258), oklch(0.16 0.016 258));
+    background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-barlow-condensed), system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .app-surface {
+    @apply border border-border/90 bg-card/90 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.75)] backdrop-blur-sm;
+  }
+
+  .panel-hover {
+    @apply transition-all duration-200 hover:border-primary/45 hover:shadow-[0_14px_40px_-24px_rgba(249,115,22,0.55)];
   }
 }

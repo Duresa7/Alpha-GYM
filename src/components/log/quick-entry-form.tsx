@@ -166,7 +166,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
   return (
     <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
       {/* Date & Workout Type */}
-      <Card className="border-border bg-card">
+      <Card className="app-surface">
         <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Date</label>
@@ -233,7 +233,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
       </Card>
 
       {/* Body Weight */}
-      <Card className="border-border bg-card">
+      <Card className="app-surface">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
             Body Weight
@@ -261,7 +261,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
 
       {/* Exercises Section */}
       {showExercises && (
-        <Card className="border-border bg-card">
+        <Card className="app-surface">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
               Exercises
@@ -310,7 +310,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
 
       {/* Cardio Section */}
       {showCardio && (
-        <Card className="border-border bg-card">
+        <Card className="app-surface">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
               Cardio
@@ -353,7 +353,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
       )}
 
       {/* Notes */}
-      <Card className="border-border bg-card">
+      <Card className="app-surface">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
             Notes
