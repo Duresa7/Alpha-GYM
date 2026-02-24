@@ -15,7 +15,7 @@ interface StatsGridProps {
 
 export function StatsGrid({ stats }: StatsGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <StatCard
         title="Total Exercises"
         value={stats.totalExercises}
@@ -26,13 +26,13 @@ export function StatsGrid({ stats }: StatsGridProps) {
         title="Cardio Sessions"
         value={stats.totalCardioSessions}
         icon={Bike}
-        color="orange"
+        color="magenta"
       />
       <StatCard
         title="Cardio Minutes"
         value={stats.totalCardioMinutes}
         icon={Timer}
-        color="orange"
+        color="blue"
       />
       <StatCard
         title="Current Weight"

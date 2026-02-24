@@ -1,21 +1,12 @@
 "use client";
 
 import { DayCard } from "./day-card";
+import { DAY_ORDER } from "@/lib/constants";
 import type { WeeklyPlanItem } from "@/types";
 
 interface WeeklyPlanGridProps {
   plan: Record<string, WeeklyPlanItem[]>;
 }
-
-const DAY_ORDER = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-];
 
 export function WeeklyPlanGrid({ plan }: WeeklyPlanGridProps) {
   const today = new Date()

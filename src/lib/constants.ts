@@ -56,3 +56,13 @@ export const SECTION_COLORS: Record<string, string> = {
 
 export const MAX_EXERCISES = 10;
 export const MAX_CARDIO_ENTRIES = 5;
+
+export const DAY_ORDER = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;

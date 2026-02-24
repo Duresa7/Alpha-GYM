@@ -23,18 +23,21 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-20 flex-col border-r border-sidebar-border/80 bg-sidebar/90 backdrop-blur-sm sm:w-64">
-      <div className="relative flex h-20 items-center gap-3 border-b border-sidebar-border/80 px-4 sm:px-6">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/12 via-primary/6 to-transparent" />
-        <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-primary/40 bg-primary/15 text-primary">
-          <Dumbbell className="h-6 w-6" />
+    <aside className="sticky top-0 z-50 flex h-screen w-20 flex-col border-r border-black/5 bg-white/70 backdrop-blur-2xl transition-all duration-300 sm:w-64">
+      {/* Decorative Gradient Line on the right edge */}
+      <div className="absolute inset-y-0 right-0 w-[1px] bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
+
+      <div className="relative flex h-24 items-center gap-4 border-b border-black/5 px-4 sm:px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-50 mix-blend-multiply" />
+        <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary shadow-[0_0_20px_rgba(255,100,0,0.15)] neon-border-orange transition-transform duration-500 hover:scale-110 hover:shadow-[0_0_30px_rgba(255,100,0,0.3)]">
+          <Dumbbell className="h-6 w-6" strokeWidth={2.5} />
         </div>
-        <span className="hidden text-xl font-bold tracking-wider text-primary font-[family-name:var(--font-barlow-condensed)] sm:block">
-          ALPHA GYM
+        <span className="hidden text-2xl font-bold tracking-widest text-foreground font-[family-name:var(--font-barlow-condensed)] sm:block text-glow-orange">
+          ALPHA<span className="text-primary">GYM</span>
         </span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-2 py-4 sm:px-3">
+      <nav className="flex-1 space-y-2 px-3 py-8 sm:px-4">
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
@@ -46,22 +49,37 @@ export function AppSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center justify-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 cursor-pointer sm:justify-start",
+                "group relative flex items-center justify-center gap-4 rounded-2xl px-3 py-3.5 text-sm font-semibold transition-all duration-300 cursor-pointer sm:justify-start overflow-hidden",
                 isActive
-                  ? "bg-primary/20 text-primary shadow-[inset_0_0_0_1px_rgba(249,115,22,0.35)]"
-                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,100,0,0.2)] shadow-[0_4px_20px_rgba(255,100,0,0.05)]"
+                  : "text-foreground/70 hover:bg-black/5 hover:text-foreground"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="hidden sm:inline">{item.label}</span>
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
+              )}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 h-1/2 w-[3px] -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_10px_rgba(255,100,0,0.4)]" />
+              )}
+              <item.icon
+                className={cn(
+                  "relative z-10 h-5 w-5 transition-transform duration-300 group-hover:scale-110",
+                  isActive ? "text-primary drop-shadow-[0_0_8px_rgba(255,100,0,0.4)]" : ""
+                )}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              <span className="relative z-10 hidden tracking-wide sm:inline">
+                {item.label}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border/80 px-3 py-4 sm:px-6">
-        <p className="hidden text-xs text-muted-foreground sm:block">
-          Track. Push. Progress.
+      <div className="relative border-t border-black/5 px-4 py-6 sm:px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
+        <p className="hidden text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/70 sm:block">
+          Track. <span className="text-primary drop-shadow-[0_0_5px_rgba(255,100,0,0.3)]">Push.</span> Progress.
         </p>
       </div>
     </aside>
