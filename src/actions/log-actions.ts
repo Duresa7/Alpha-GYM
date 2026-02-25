@@ -12,12 +12,14 @@ export async function submitWorkoutLog(data: QuickEntryFormValues) {
     for (const ex of exerciseEntries) {
       if (
         ex.exerciseName &&
+        typeof ex.sets === "number" &&
         typeof ex.weightLbs === "number" &&
         typeof ex.reps === "number"
       ) {
         await db.insert(exercises).values({
           date,
           exerciseName: ex.exerciseName,
+          sets: ex.sets,
           weightLbs: ex.weightLbs,
           reps: ex.reps,
         });

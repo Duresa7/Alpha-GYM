@@ -5,6 +5,7 @@ export const exercises = sqliteTable("exercises", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   date: text("date").notNull(),
   exerciseName: text("exercise_name").notNull(),
+  sets: integer("sets").notNull().default(1),
   weightLbs: real("weight_lbs").notNull(),
   reps: integer("reps").notNull(),
   createdAt: text("created_at").default(sql`(datetime('now'))`),
@@ -47,4 +48,17 @@ export const weeklyPlan = sqliteTable("weekly_plan", {
   setsReps: text("sets_reps"),
   section: text("section").notNull(),
   orderIndex: integer("order_index").notNull(),
+});
+
+export const waterIntake = sqliteTable("water_intake", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  date: text("date").notNull(),
+  amountOz: real("amount_oz").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`),
+});
+
+export const userSettings = sqliteTable("user_settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
 });

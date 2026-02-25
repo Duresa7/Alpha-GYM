@@ -18,15 +18,3 @@ export async function getExerciseNames() {
     .orderBy(asc(exerciseList.name));
   return results;
 }
-
-export async function getExercisesByCategory() {
-  const all = await getExerciseList();
-  const grouped: Record<string, typeof all> = {};
-  for (const exercise of all) {
-    if (!grouped[exercise.category]) {
-      grouped[exercise.category] = [];
-    }
-    grouped[exercise.category].push(exercise);
-  }
-  return grouped;
-}

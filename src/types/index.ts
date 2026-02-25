@@ -9,6 +9,7 @@ export interface VolumeTrendPoint {
 }
 
 export interface RecentActivityEntry {
+  id: number;
   date: string;
   workoutType: string;
   notes: string | null;
@@ -18,6 +19,7 @@ export interface ExerciseLogEntry {
   id: number;
   date: string;
   exerciseName: string;
+  sets: number;
   weightLbs: number;
   reps: number;
 }
@@ -58,4 +60,44 @@ export interface DashboardStats {
   currentWeight: number | null;
   startingWeight: number | null;
   weightChange: number | null;
+}
+
+export interface WeightProgressionPoint {
+  date: string;
+  exerciseName: string;
+  weightLbs: number;
+  weightChange: number | null;
+  percentChange: number | null;
+  runningAvgChange: number | null;
+}
+
+export interface WeightLossLevel {
+  level: number;
+  title: string;
+  currentXP: number;
+  xpForNextLevel: number;
+  totalXP: number;
+  progressPercent: number;
+}
+
+export interface WeightGoalStatus {
+  goalWeight: number | null;
+  currentWeight: number | null;
+  startWeight: number | null;
+  lostSoFar: number;
+  remaining: number;
+  progressPercent: number;
+}
+
+export interface WaterIntakeEntry {
+  id: number;
+  date: string;
+  amountOz: number;
+}
+
+export interface WaterIntakeStatus {
+  todayTotal: number;
+  goalOz: number | null;
+  progressPercent: number;
+  weeklyData: { date: string; totalOz: number }[];
 }
