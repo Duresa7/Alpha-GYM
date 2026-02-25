@@ -39,11 +39,13 @@ function isCompleteExerciseEntry(
   entry: ExerciseFormEntry
 ): entry is ExerciseFormEntry & {
   exerciseName: string;
+  sets: number;
   weightLbs: number;
   reps: number;
 } {
   return (
     Boolean(entry.exerciseName) &&
+    typeof entry.sets === "number" &&
     typeof entry.weightLbs === "number" &&
     typeof entry.reps === "number"
   );
@@ -98,7 +100,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
       date: format(new Date(), "yyyy-MM-dd"),
       workoutType: "both",
       bodyWeight: undefined,
-      exercises: [{ exerciseName: "", weightLbs: undefined, reps: undefined }],
+      exercises: [{ exerciseName: "", weightLbs: undefined, sets: undefined, reps: undefined }],
       cardioEntries: [{ cardioType: "", durationMin: undefined }],
       notes: "",
     },
@@ -147,7 +149,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
         date: format(new Date(), "yyyy-MM-dd"),
         workoutType: "both",
         bodyWeight: undefined,
-        exercises: [{ exerciseName: "", weightLbs: undefined, reps: undefined }],
+        exercises: [{ exerciseName: "", weightLbs: undefined, sets: undefined, reps: undefined }],
         cardioEntries: [{ cardioType: "", durationMin: undefined }],
         notes: "",
       });
@@ -285,6 +287,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
                     appendExercise({
                       exerciseName: "",
                       weightLbs: undefined,
+                      sets: undefined,
                       reps: undefined,
                     })
                   }

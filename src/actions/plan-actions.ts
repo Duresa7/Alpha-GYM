@@ -3,17 +3,8 @@
 import { db } from "@/db";
 import { weeklyPlan } from "@/db/schema";
 import { asc } from "drizzle-orm";
+import { DAY_ORDER } from "@/lib/constants";
 import type { WeeklyPlanItem } from "@/types";
-
-const DAY_ORDER = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-];
 
 export async function getWeeklyPlan(): Promise<
   Record<string, WeeklyPlanItem[]>

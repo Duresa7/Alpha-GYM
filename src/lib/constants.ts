@@ -2,6 +2,7 @@ export const WORKOUT_TYPES = [
   { value: "exercise_only", label: "Exercise Only" },
   { value: "cardio_only", label: "Cardio Only" },
   { value: "both", label: "Both" },
+  { value: "weight_only", label: "Weigh-In Only" },
   { value: "rest_day", label: "Rest Day" },
 ] as const;
 
@@ -56,3 +57,13 @@ export const SECTION_COLORS: Record<string, string> = {
 
 export const MAX_EXERCISES = 10;
 export const MAX_CARDIO_ENTRIES = 5;
+
+export const DAY_ORDER = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;

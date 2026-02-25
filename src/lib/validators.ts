@@ -4,10 +4,17 @@ export const workoutTypeEnum = z.enum([
   "exercise_only",
   "cardio_only",
   "both",
+  "weight_only",
   "rest_day",
 ]);
 
 const optionalWeightSchema = z.number().min(0, "Weight must be positive").optional();
+
+const optionalSetsSchema = z
+  .number()
+  .int("Sets must be a whole number")
+  .min(1, "Sets must be at least 1")
+  .optional();
 
 const optionalRepsSchema = z
   .number()
@@ -25,12 +32,14 @@ export const exerciseEntrySchema = z
   .object({
     exerciseName: z.string().trim().optional(),
     weightLbs: optionalWeightSchema,
+    sets: optionalSetsSchema,
     reps: optionalRepsSchema,
   })
   .superRefine((entry, ctx) => {
     const hasAnyValue =
       Boolean(entry.exerciseName) ||
       entry.weightLbs !== undefined ||
+      entry.sets !== undefined ||
       entry.reps !== undefined;
 
     if (!hasAnyValue) {
@@ -50,6 +59,14 @@ export const exerciseEntrySchema = z
         code: z.ZodIssueCode.custom,
         path: ["weightLbs"],
         message: "Weight is required",
+      });
+    }
+
+    if (entry.sets === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sets"],
+        message: "Sets are required",
       });
     }
 
@@ -137,6 +154,14 @@ export const quickEntryFormSchema = z
         code: z.ZodIssueCode.custom,
         path: ["cardioEntries"],
         message: "Add at least one complete cardio entry.",
+      });
+    }
+
+    if (data.workoutType === "weight_only" && data.bodyWeight === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bodyWeight"],
+        message: "Body weight is required for weigh-in.",
       });
     }
   });

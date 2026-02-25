@@ -11,6 +11,7 @@ export async function getExerciseLogs() {
       id: exercises.id,
       date: exercises.date,
       exerciseName: exercises.exerciseName,
+      sets: exercises.sets,
       weightLbs: exercises.weightLbs,
       reps: exercises.reps,
     })
@@ -57,6 +58,71 @@ export async function deleteCardioLog(id: number) {
 
 export async function deleteWeightLog(id: number) {
   await db.delete(weightLog).where(eq(weightLog.id, id));
+  revalidatePath("/history");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function updateExerciseLog(
+  id: number,
+  data: {
+    date: string;
+    exerciseName: string;
+    sets: number;
+    weightLbs: number;
+    reps: number;
+  }
+) {
+  await db
+    .update(exercises)
+    .set({
+      date: data.date,
+      exerciseName: data.exerciseName,
+      sets: data.sets,
+      weightLbs: data.weightLbs,
+      reps: data.reps,
+    })
+    .where(eq(exercises.id, id));
+  revalidatePath("/history");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function updateCardioLog(
+  id: number,
+  data: {
+    date: string;
+    cardioType: string;
+    durationMin: number;
+  }
+) {
+  await db
+    .update(cardio)
+    .set({
+      date: data.date,
+      cardioType: data.cardioType,
+      durationMin: data.durationMin,
+    })
+    .where(eq(cardio.id, id));
+  revalidatePath("/history");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function updateWeightLog(
+  id: number,
+  data: {
+    date: string;
+    weightLbs: number;
+  }
+) {
+  await db
+    .update(weightLog)
+    .set({
+      date: data.date,
+      weightLbs: data.weightLbs,
+    })
+    .where(eq(weightLog.id, id));
   revalidatePath("/history");
   revalidatePath("/");
   return { success: true };
