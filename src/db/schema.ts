@@ -50,6 +50,13 @@ export const weeklyPlan = sqliteTable("weekly_plan", {
   orderIndex: integer("order_index").notNull(),
 });
 
+export const waterIntake = sqliteTable("water_intake", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  date: text("date").notNull(),
+  amountOz: real("amount_oz").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`),
+});
+
 export const userSettings = sqliteTable("user_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   key: text("key").notNull().unique(),

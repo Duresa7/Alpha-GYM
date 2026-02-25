@@ -172,10 +172,86 @@
       inset 0 0 0 1px oklch(0.65 0.22 40 / 0.2),
       0 0 10px oklch(0.65 0.22 40 / 0.1);
   }
+
+  .dashboard-grid .react-grid-item {
+    transition: all 200ms ease;
+  }
+
+  .dashboard-grid .react-grid-item.react-grid-placeholder {
+    background: oklch(0.65 0.22 40 / 0.1);
+    border: 2px dashed oklch(0.65 0.22 40 / 0.3);
+    border-radius: var(--radius);
+  }
+
+  .dashboard-tile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .panel-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.2s;
+  }
+
+  .panel-drag-handle:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .panel-drag-handle:active {
+    cursor: grabbing;
+  }
+
+  .panel-drag-dots {
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.2);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .dashboard-tile-content {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+  }
+
+  .dashboard-tile-content > * {
+    height: 100%;
+  }
+
+  .dashboard-grid .react-grid-item > .react-resizable-handle {
+    background: none;
+  }
+
+  .dashboard-grid .react-grid-item > .react-resizable-handle::after {
+    content: "";
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid rgba(0, 0, 0, 0.15);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 2px 0;
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
-

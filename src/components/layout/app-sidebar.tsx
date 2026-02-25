@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Dumbbell,
   History,
+  Settings,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/plan", label: "Weekly Plan", icon: CalendarDays },
   { href: "/exercises", label: "Exercises", icon: Dumbbell },
   { href: "/history", label: "History", icon: History },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function AppSidebar() {
