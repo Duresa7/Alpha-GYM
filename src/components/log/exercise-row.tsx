@@ -71,6 +71,26 @@ export function ExerciseRow({
       <div className="w-20 space-y-1">
         {index === 0 && (
           <label className="mb-1.5 block text-sm text-muted-foreground">
+            Sets
+          </label>
+        )}
+        <Input
+          type="number"
+          placeholder="1"
+          {...form.register(`exercises.${index}.sets`, {
+            setValueAs: (value) =>
+              value === "" ? undefined : Number(value),
+          })}
+        />
+        {rowErrors?.sets?.message ? (
+          <p className="text-sm text-destructive">
+            {rowErrors.sets.message}
+          </p>
+        ) : null}
+      </div>
+      <div className="w-20 space-y-1">
+        {index === 0 && (
+          <label className="mb-1.5 block text-sm text-muted-foreground">
             Reps
           </label>
         )}

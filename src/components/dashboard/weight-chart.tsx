@@ -23,7 +23,7 @@ export function WeightChart({ data }: WeightChartProps) {
         <span className="absolute inset-0 z-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <CardHeader className="relative z-10 border-b border-black/5 pb-4">
           <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-            Weight Trend
+            Weight Loss Progression
           </CardTitle>
         </CardHeader>
         <CardContent className="relative z-10 pt-6">
@@ -41,7 +41,7 @@ export function WeightChart({ data }: WeightChartProps) {
       <CardHeader className="relative z-10 border-b border-black/5 pb-4">
         <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
           <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)] animate-pulse" />
-          Weight Trend
+          Weight Loss Progression
         </CardTitle>
       </CardHeader>
       <CardContent className="relative z-10 pt-6">

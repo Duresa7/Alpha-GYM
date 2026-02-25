@@ -2,6 +2,7 @@ export const WORKOUT_TYPES = [
   { value: "exercise_only", label: "Exercise Only" },
   { value: "cardio_only", label: "Cardio Only" },
   { value: "both", label: "Both" },
+  { value: "weight_only", label: "Weigh-In Only" },
   { value: "rest_day", label: "Rest Day" },
 ] as const;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Trash2 } from "lucide-react";
+import { ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type {
   ExerciseLogEntry,
@@ -28,27 +28,34 @@ function SortableHeader({
   );
 }
 
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function getExerciseColumns(
+  onEdit: (entry: ExerciseLogEntry) => void,
   onDelete: (id: number) => void | Promise<void>
 ): ColumnDef<ExerciseLogEntry>[] {
   return [
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => {
-        const d = new Date(row.getValue<string>("date") + "T00:00:00");
-        return d.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
+      cell: ({ row }) => formatDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "exerciseName",
       header: ({ column }) => (
         <SortableHeader column={column} label="Exercise" />
       ),
+    },
+    {
+      accessorKey: "sets",
+      header: ({ column }) => <SortableHeader column={column} label="Sets" />,
     },
     {
       accessorKey: "weightLbs",
@@ -63,36 +70,42 @@ export function getExerciseColumns(
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(row.original.id)}
-          aria-label="Delete exercise log"
-          title="Delete exercise log"
-          className="cursor-pointer text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(row.original)}
+            aria-label="Edit exercise log"
+            title="Edit exercise log"
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(row.original.id)}
+            aria-label="Delete exercise log"
+            title="Delete exercise log"
+            className="cursor-pointer text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];
 }
 
 export function getCardioColumns(
+  onEdit: (entry: CardioLogEntry) => void,
   onDelete: (id: number) => void | Promise<void>
 ): ColumnDef<CardioLogEntry>[] {
   return [
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => {
-        const d = new Date(row.getValue<string>("date") + "T00:00:00");
-        return d.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
+      cell: ({ row }) => formatDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "cardioType",
@@ -107,36 +120,42 @@ export function getCardioColumns(
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(row.original.id)}
-          aria-label="Delete cardio log"
-          title="Delete cardio log"
-          className="cursor-pointer text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(row.original)}
+            aria-label="Edit cardio log"
+            title="Edit cardio log"
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(row.original.id)}
+            aria-label="Delete cardio log"
+            title="Delete cardio log"
+            className="cursor-pointer text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];
 }
 
 export function getWeightColumns(
+  onEdit: (entry: WeightLogEntry) => void,
   onDelete: (id: number) => void | Promise<void>
 ): ColumnDef<WeightLogEntry>[] {
   return [
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => {
-        const d = new Date(row.getValue<string>("date") + "T00:00:00");
-        return d.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
+      cell: ({ row }) => formatDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "weightLbs",
@@ -147,16 +166,28 @@ export function getWeightColumns(
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(row.original.id)}
-          aria-label="Delete weight log"
-          title="Delete weight log"
-          className="cursor-pointer text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(row.original)}
+            aria-label="Edit weight log"
+            title="Edit weight log"
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(row.original.id)}
+            aria-label="Delete weight log"
+            title="Delete weight log"
+            className="cursor-pointer text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];

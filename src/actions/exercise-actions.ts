@@ -18,4 +18,3 @@ export async function getExerciseNames() {
     .orderBy(asc(exerciseList.name));
   return results;
 }
-
