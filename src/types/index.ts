@@ -88,3 +88,16 @@ export interface WeightGoalStatus {
   remaining: number;
   progressPercent: number;
 }
+
+export interface WaterIntakeEntry {
+  id: number;
+  date: string;
+  amountOz: number;
+}
+
+export interface WaterIntakeStatus {
+  todayTotal: number;
+  goalOz: number | null;
+  progressPercent: number;
+  weeklyData: { date: string; totalOz: number }[];
+}
