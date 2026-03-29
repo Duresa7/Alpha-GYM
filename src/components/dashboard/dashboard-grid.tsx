@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, type ReactNode } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -46,6 +46,12 @@ function saveLayouts(layouts: ReactGridLayout.Layouts) {
 }
 
 export function DashboardGrid({ panels }: DashboardGridProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const savedLayouts = loadSavedLayouts();
 
   const defaultLayouts: ReactGridLayout.Layouts = {
@@ -89,6 +95,8 @@ export function DashboardGrid({ panels }: DashboardGridProps) {
     },
     []
   );
+
+  if (!mounted) return null;
 
   return (
     <ResponsiveGrid
