@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Plus, Save, Loader2 } from "lucide-react";
+import { CalendarPlus2, Loader2, Plus, Save, SkipForward } from "lucide-react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,21 +19,90 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-
 import { DatePicker } from "./date-picker";
 import { ExerciseRow } from "./exercise-row";
 import { CardioRow } from "./cardio-row";
-
-import { quickEntryFormSchema, type QuickEntryFormValues } from "@/lib/validators";
-import { WORKOUT_TYPES, MAX_EXERCISES, MAX_CARDIO_ENTRIES } from "@/lib/constants";
+import {
+  quickEntryFormSchema,
+  type QuickEntryFormValues,
+} from "@/lib/validators";
+import { parseDateKey } from "@/lib/date";
+import {
+  MAX_CARDIO_ENTRIES,
+  MAX_EXERCISES,
+  PLAN_COMPLETION_MODES,
+  SKIP_REASONS,
+  WORKOUT_TYPES,
+} from "@/lib/constants";
 import { submitWorkoutLog } from "@/actions/log-actions";
+import { carryForwardPlannedWorkout, skipPlannedWorkout } from "@/actions/plan-actions";
+import type { PlannedWorkout } from "@/types";
 
 interface QuickEntryFormProps {
-  exerciseNames: { name: string; category: string }[];
+  exerciseNames: { name: string; category: string; trackingMode: string }[];
+  plannedWorkouts: PlannedWorkout[];
+  initialPlannedWorkoutId?: number;
 }
 
 type ExerciseFormEntry = QuickEntryFormValues["exercises"][number];
 type CardioFormEntry = QuickEntryFormValues["cardioEntries"][number];
+
+function emptyExercise() {
+  return {
+    exerciseName: "",
+    weightLbs: undefined,
+    sets: undefined,
+    reps: undefined,
+  };
+}
+
+function emptyCardio() {
+  return {
+    cardioType: "",
+    durationMin: undefined,
+  };
+}
+
+function buildDefaults(workout?: PlannedWorkout): QuickEntryFormValues {
+  const exerciseItems =
+    workout?.items
+      .filter((item) => item.itemType === "exercise")
+      .map((item) => ({
+        exerciseName: item.exerciseName,
+        weightLbs: undefined,
+        sets: undefined,
+        reps: undefined,
+      })) || [];
+
+  const cardioItems =
+    workout?.items
+      .filter((item) => item.itemType === "cardio")
+      .map((item) => ({
+        cardioType: item.exerciseName,
+        durationMin: undefined,
+      })) || [];
+
+  const workoutType =
+    exerciseItems.length > 0 && cardioItems.length > 0
+      ? "both"
+      : exerciseItems.length > 0
+        ? "exercise_only"
+        : cardioItems.length > 0
+          ? "cardio_only"
+          : "rest_day";
+
+  return {
+    date: format(new Date(), "yyyy-MM-dd"),
+    sessionTitle: workout?.title || "",
+    plannedWorkoutId: workout?.id,
+    planCompletionMode: workout ? "completed" : "unplanned",
+    workoutType,
+    bodyWeight: undefined,
+    exercises: exerciseItems.length ? exerciseItems : [emptyExercise()],
+    cardioEntries: cardioItems.length ? cardioItems : [emptyCardio()],
+    notes: "",
+  };
+}
 
 function isCompleteExerciseEntry(
   entry: ExerciseFormEntry
@@ -57,10 +126,7 @@ function isCompleteCardioEntry(
   cardioType: string;
   durationMin: number;
 } {
-  return (
-    Boolean(entry.cardioType) &&
-    typeof entry.durationMin === "number"
-  );
+  return Boolean(entry.cardioType) && typeof entry.durationMin === "number";
 }
 
 function getErrorMessage(error: unknown): string | null {
@@ -78,49 +144,86 @@ function getErrorMessage(error: unknown): string | null {
   return null;
 }
 
-function getArrayErrorMessage(error: unknown): string | null {
-  const directMessage = getErrorMessage(error);
-  if (directMessage) {
-    return directMessage;
-  }
-
-  if (error && typeof error === "object" && "root" in error) {
-    return getErrorMessage((error as { root?: unknown }).root);
-  }
-
-  return null;
-}
-
-export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
+export function QuickEntryForm({
+  exerciseNames,
+  plannedWorkouts,
+  initialPlannedWorkoutId,
+}: QuickEntryFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [planActionLoading, setPlanActionLoading] = useState(false);
+  const [skipReason, setSkipReason] = useState<string>(SKIP_REASONS[0]);
+
+  const initialWorkout = useMemo(
+    () => plannedWorkouts.find((entry) => entry.id === initialPlannedWorkoutId),
+    [initialPlannedWorkoutId, plannedWorkouts]
+  );
 
   const form = useForm<QuickEntryFormValues>({
     resolver: zodResolver(quickEntryFormSchema),
-    defaultValues: {
-      date: format(new Date(), "yyyy-MM-dd"),
-      workoutType: "both",
-      bodyWeight: undefined,
-      exercises: [{ exerciseName: "", weightLbs: undefined, sets: undefined, reps: undefined }],
-      cardioEntries: [{ cardioType: "", durationMin: undefined }],
-      notes: "",
-    },
+    defaultValues: buildDefaults(initialWorkout),
   });
 
   const {
     fields: exerciseFields,
     append: appendExercise,
     remove: removeExercise,
+    replace: replaceExercises,
   } = useFieldArray({ control: form.control, name: "exercises" });
 
   const {
     fields: cardioFields,
     append: appendCardio,
     remove: removeCardio,
+    replace: replaceCardio,
   } = useFieldArray({ control: form.control, name: "cardioEntries" });
+
+  const selectedPlannedWorkoutId = form.watch("plannedWorkoutId");
+  const selectedWorkout = plannedWorkouts.find(
+    (entry) => entry.id === selectedPlannedWorkoutId
+  );
 
   const workoutType = form.watch("workoutType");
   const showExercises = workoutType === "exercise_only" || workoutType === "both";
   const showCardio = workoutType === "cardio_only" || workoutType === "both";
+
+  function applyPlannedWorkout(workoutId?: number) {
+    const workout = plannedWorkouts.find((entry) => entry.id === workoutId);
+    const defaults = buildDefaults(workout);
+
+    form.setValue("plannedWorkoutId", defaults.plannedWorkoutId, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("sessionTitle", defaults.sessionTitle, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("planCompletionMode", defaults.planCompletionMode, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("workoutType", defaults.workoutType, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    replaceExercises(defaults.exercises);
+    replaceCardio(defaults.cardioEntries);
+  }
+
+  async function runPlanAction(action: () => Promise<unknown>, successMessage: string) {
+    setPlanActionLoading(true);
+    try {
+      await action();
+      toast.success(successMessage);
+      router.refresh();
+      applyPlannedWorkout(undefined);
+    } catch {
+      toast.error("Could not update the selected planned workout.");
+    } finally {
+      setPlanActionLoading(false);
+    }
+  }
 
   async function onSubmit(data: QuickEntryFormValues) {
     setLoading(true);
@@ -132,27 +235,18 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
         ? data.cardioEntries.filter(isCompleteCardioEntry)
         : [];
 
-      const cleanData = {
+      await submitWorkoutLog({
         ...data,
         exercises: cleanExercises,
         cardioEntries: cleanCardioEntries,
-      };
-
-      await submitWorkoutLog(cleanData);
-      toast.success("Workout logged!", {
-        description: `${format(new Date(data.date + "T00:00:00"), "EEEE, MMM d")} - ${
-          WORKOUT_TYPES.find((t) => t.value === data.workoutType)?.label
-        }`,
+        planCompletionMode: data.plannedWorkoutId
+          ? data.planCompletionMode
+          : "unplanned",
       });
 
-      form.reset({
-        date: format(new Date(), "yyyy-MM-dd"),
-        workoutType: "both",
-        bodyWeight: undefined,
-        exercises: [{ exerciseName: "", weightLbs: undefined, sets: undefined, reps: undefined }],
-        cardioEntries: [{ cardioType: "", durationMin: undefined }],
-        notes: "",
-      });
+      toast.success("Workout logged.");
+      form.reset(buildDefaults(undefined));
+      router.refresh();
     } catch {
       toast.error("Failed to log workout. Please try again.");
     } finally {
@@ -160,25 +254,26 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
     }
   }
 
-  function onInvalid() {
-    toast.error("Please fix the highlighted fields before submitting.");
-  }
-
   return (
-    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+    <form
+      onSubmit={form.handleSubmit(onSubmit, () =>
+        toast.error("Please fix the highlighted fields before submitting.")
+      )}
+      className="space-y-6"
+    >
       <Card className="app-surface">
-        <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 xl:grid-cols-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Date</label>
             <DatePicker
               date={
                 form.watch("date")
-                  ? new Date(form.watch("date") + "T00:00:00")
+                  ? parseDateKey(form.watch("date"))
                   : undefined
               }
-              onSelect={(d) => {
-                if (d) {
-                  form.setValue("date", format(d, "yyyy-MM-dd"), {
+              onSelect={(date) => {
+                if (date) {
+                  form.setValue("date", format(date, "yyyy-MM-dd"), {
                     shouldDirty: true,
                     shouldValidate: true,
                   });
@@ -191,21 +286,44 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
               </p>
             ) : null}
           </div>
+
           <div>
-            <label className="mb-1.5 block text-sm font-medium">
-              Workout Type
-            </label>
+            <label className="mb-1.5 block text-sm font-medium">Start From Plan</label>
+            <Select
+              value={selectedPlannedWorkoutId ? String(selectedPlannedWorkoutId) : "free"}
+              onValueChange={(value) =>
+                applyPlannedWorkout(value === "free" ? undefined : Number(value))
+              }
+            >
+              <SelectTrigger className="cursor-pointer">
+                <SelectValue placeholder="Free workout" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free" className="cursor-pointer">
+                  Free workout
+                </SelectItem>
+                {plannedWorkouts.map((workout) => (
+                  <SelectItem
+                    key={workout.id}
+                    value={String(workout.id)}
+                    className="cursor-pointer"
+                  >
+                    {workout.title} ({workout.date})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Workout Type</label>
             <Select
               value={form.watch("workoutType")}
-              onValueChange={(val) =>
-                form.setValue(
-                  "workoutType",
-                  val as QuickEntryFormValues["workoutType"],
-                  {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  }
-                )
+              onValueChange={(value) =>
+                form.setValue("workoutType", value as QuickEntryFormValues["workoutType"], {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
               }
             >
               <SelectTrigger className="cursor-pointer">
@@ -223,14 +341,140 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
                 ))}
               </SelectContent>
             </Select>
-            {getErrorMessage(form.formState.errors.workoutType) ? (
-              <p className="mt-1 text-sm text-destructive">
-                {getErrorMessage(form.formState.errors.workoutType)}
-              </p>
-            ) : null}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Session Title</label>
+            <Input
+              value={form.watch("sessionTitle") || ""}
+              onChange={(event) =>
+                form.setValue("sessionTitle", event.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              placeholder="Optional title"
+            />
           </div>
         </CardContent>
       </Card>
+
+      {selectedWorkout ? (
+        <Card className="app-surface">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
+              Planned Workout
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-xl border border-black/5 bg-white/50 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-lg font-semibold">{selectedWorkout.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedWorkout.date}
+                    {selectedWorkout.estimatedDurationMin
+                      ? ` • ${selectedWorkout.estimatedDurationMin} min`
+                      : ""}
+                  </p>
+                </div>
+                <Select
+                  value={form.watch("planCompletionMode")}
+                  onValueChange={(value) =>
+                    form.setValue(
+                      "planCompletionMode",
+                      value as QuickEntryFormValues["planCompletionMode"],
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full cursor-pointer sm:w-[220px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PLAN_COMPLETION_MODES.filter((mode) => mode.value !== "unplanned").map(
+                      (mode) => (
+                        <SelectItem
+                          key={mode.value}
+                          value={mode.value}
+                          className="cursor-pointer"
+                        >
+                          {mode.label}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedWorkout.items.map((item) => (
+                  <span
+                    key={item.id}
+                    className="rounded-full border border-black/10 bg-white/70 px-3 py-1 text-xs"
+                  >
+                    {item.exerciseName}
+                    {item.target ? ` • ${item.target}` : ""}
+                    {!item.isRequired ? " • optional" : ""}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+              <select
+                value={skipReason}
+                onChange={(event) => setSkipReason(event.target.value)}
+                disabled={planActionLoading}
+                className="flex h-10 rounded-md border border-input bg-white/70 px-3 py-2 text-sm"
+              >
+                {SKIP_REASONS.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {reason}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  runPlanAction(
+                    () => skipPlannedWorkout(selectedWorkout.id, skipReason),
+                    "Workout skipped."
+                  )
+                }
+                disabled={planActionLoading}
+                className="cursor-pointer"
+              >
+                {planActionLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <SkipForward className="mr-2 h-4 w-4" />
+                )}
+                Skip
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  runPlanAction(
+                    () => carryForwardPlannedWorkout(selectedWorkout.id),
+                    "Workout moved to tomorrow."
+                  )
+                }
+                disabled={planActionLoading}
+                className="cursor-pointer"
+              >
+                <CalendarPlus2 className="mr-2 h-4 w-4" />
+                Move to Tomorrow
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="app-surface">
         <CardHeader className="pb-3">
@@ -245,20 +489,14 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
               step="0.1"
               placeholder="lbs"
               {...form.register("bodyWeight", {
-                setValueAs: (value) =>
-                  value === "" ? undefined : Number(value),
+                setValueAs: (value) => (value === "" ? undefined : Number(value)),
               })}
             />
-            {getErrorMessage(form.formState.errors.bodyWeight) ? (
-              <p className="mt-1 text-sm text-destructive">
-                {getErrorMessage(form.formState.errors.bodyWeight)}
-              </p>
-            ) : null}
           </div>
         </CardContent>
       </Card>
 
-      {showExercises && (
+      {showExercises ? (
         <Card className="app-surface">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
@@ -276,38 +514,26 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
                 canRemove={exerciseFields.length > 1}
               />
             ))}
-            {exerciseFields.length < MAX_EXERCISES && (
+            {exerciseFields.length < MAX_EXERCISES ? (
               <>
                 <Separator />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    appendExercise({
-                      exerciseName: "",
-                      weightLbs: undefined,
-                      sets: undefined,
-                      reps: undefined,
-                    })
-                  }
+                  onClick={() => appendExercise(emptyExercise())}
                   className="cursor-pointer"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Exercise
                 </Button>
               </>
-            )}
-            {getArrayErrorMessage(form.formState.errors.exercises) ? (
-              <p className="text-sm text-destructive">
-                {getArrayErrorMessage(form.formState.errors.exercises)}
-              </p>
             ) : null}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
-      {showCardio && (
+      {showCardio ? (
         <Card className="app-surface">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
@@ -324,31 +550,24 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
                 canRemove={cardioFields.length > 1}
               />
             ))}
-            {cardioFields.length < MAX_CARDIO_ENTRIES && (
+            {cardioFields.length < MAX_CARDIO_ENTRIES ? (
               <>
                 <Separator />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    appendCardio({ cardioType: "", durationMin: undefined })
-                  }
+                  onClick={() => appendCardio(emptyCardio())}
                   className="cursor-pointer"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Cardio
                 </Button>
               </>
-            )}
-            {getArrayErrorMessage(form.formState.errors.cardioEntries) ? (
-              <p className="text-sm text-destructive">
-                {getArrayErrorMessage(form.formState.errors.cardioEntries)}
-              </p>
             ) : null}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <Card className="app-surface">
         <CardHeader className="pb-3">
@@ -358,7 +577,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
         </CardHeader>
         <CardContent>
           <Textarea
-            placeholder="How did it go? Any PRs?"
+            placeholder="Energy, substitutions, PRs, or anything worth remembering."
             {...form.register("notes")}
           />
         </CardContent>
@@ -367,7 +586,7 @@ export function QuickEntryForm({ exerciseNames }: QuickEntryFormProps) {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
+        className="w-full cursor-pointer bg-accent text-accent-foreground hover:bg-accent/90"
         size="lg"
       >
         {loading ? (

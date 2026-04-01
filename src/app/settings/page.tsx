@@ -1,21 +1,17 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { SettingsForm } from "@/components/settings/settings-form";
-import { getWeightGoal } from "@/actions/goal-actions";
-import { getWaterGoal } from "@/actions/water-actions";
+import { getGoalSettings } from "@/actions/goal-actions";
 
 export default async function SettingsPage() {
-  const [weightGoal, waterGoal] = await Promise.all([
-    getWeightGoal(),
-    getWaterGoal(),
-  ]);
+  const settings = await getGoalSettings();
 
   return (
     <div>
-      <PageHeader title="Settings" description="Configure your goals" />
-      <SettingsForm
-        currentWeightGoal={weightGoal}
-        currentWaterGoal={waterGoal}
+      <PageHeader
+        title="Settings"
+        description="Tune the targets that drive adherence, weigh-ins, hydration, and movement."
       />
+      <SettingsForm settings={settings} />
     </div>
   );
 }

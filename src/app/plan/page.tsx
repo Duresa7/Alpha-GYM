@@ -1,17 +1,23 @@
+import { addDays } from "date-fns";
 import { PageHeader } from "@/components/layout/page-header";
-import { WeeklyPlanGrid } from "@/components/plan/weekly-plan-grid";
-import { getWeeklyPlan } from "@/actions/plan-actions";
+import { PlanWorkspace } from "@/components/plan/plan-workspace";
+import { getPlannedWorkoutsForRange, getWorkoutTemplates } from "@/actions/plan-actions";
+import { formatDateKey } from "@/lib/date";
 
 export default async function PlanPage() {
-  const plan = await getWeeklyPlan();
+  const today = new Date();
+  const [templates, plannedWorkouts] = await Promise.all([
+    getWorkoutTemplates(),
+    getPlannedWorkoutsForRange(formatDateKey(today), formatDateKey(addDays(today, 6))),
+  ]);
 
   return (
     <div>
       <PageHeader
-        title="Weekly Plan"
-        description="Your 7-day training schedule"
+        title="Plan Builder"
+        description="Create reusable templates, schedule workouts, and keep your week flexible."
       />
-      <WeeklyPlanGrid plan={plan} />
+      <PlanWorkspace templates={templates} plannedWorkouts={plannedWorkouts} />
     </div>
   );
 }

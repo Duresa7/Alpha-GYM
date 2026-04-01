@@ -1,11 +1,11 @@
 import { StatCard } from "./stat-card";
 import {
-  Dumbbell,
-  Bike,
-  Timer,
+  ClipboardCheck,
+  Flame,
   Scale,
-  TrendingDown,
-  ArrowUpDown,
+  Timer,
+  Activity,
+  CalendarCheck2,
 } from "lucide-react";
 import type { DashboardStats } from "@/types";
 
@@ -15,23 +15,29 @@ interface StatsGridProps {
 
 export function StatsGrid({ stats }: StatsGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
       <StatCard
-        title="Total Exercises"
-        value={stats.totalExercises}
-        icon={Dumbbell}
+        title="Planned This Week"
+        value={stats.plannedThisWeek}
+        icon={ClipboardCheck}
         color="orange"
       />
       <StatCard
-        title="Cardio Sessions"
-        value={stats.totalCardioSessions}
-        icon={Bike}
+        title="Completed This Week"
+        value={stats.completedThisWeek}
+        icon={CalendarCheck2}
+        color="green"
+      />
+      <StatCard
+        title="Completion Rate"
+        value={`${stats.completionRate}%`}
+        icon={Flame}
         color="magenta"
       />
       <StatCard
-        title="Cardio Minutes"
-        value={stats.totalCardioMinutes}
-        icon={Timer}
+        title="Current Streak"
+        value={`${stats.currentStreak} day${stats.currentStreak === 1 ? "" : "s"}`}
+        icon={Activity}
         color="blue"
       />
       <StatCard
@@ -41,26 +47,12 @@ export function StatsGrid({ stats }: StatsGridProps) {
         color="green"
       />
       <StatCard
-        title="Starting Weight"
-        value={stats.startingWeight ? `${stats.startingWeight} lbs` : "--"}
-        icon={TrendingDown}
-        color="muted"
-      />
-      <StatCard
-        title="Weight Change"
+        title="Days Since Weigh-In"
         value={
-          stats.weightChange !== null
-            ? `${stats.weightChange > 0 ? "+" : ""}${stats.weightChange} lbs`
-            : "--"
+          stats.daysSinceLastWeighIn !== null ? stats.daysSinceLastWeighIn : "--"
         }
-        icon={ArrowUpDown}
-        color={
-          stats.weightChange !== null
-            ? stats.weightChange < 0
-              ? "green"
-              : "orange"
-            : "muted"
-        }
+        icon={Timer}
+        color={stats.daysSinceLastWeighIn !== null && stats.daysSinceLastWeighIn <= 2 ? "green" : "muted"}
       />
     </div>
   );

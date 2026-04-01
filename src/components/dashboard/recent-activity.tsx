@@ -4,10 +4,11 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteActivityLog } from "@/actions/dashboard-actions";
+import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
+import { formatDisplayDate } from "@/lib/date";
 import type { RecentActivityEntry } from "@/types";
 
 interface RecentActivityProps {
@@ -51,15 +52,11 @@ export function RecentActivity({ entries }: RecentActivityProps) {
   );
 
   return (
-    <Card className="app-surface panel-hover group relative overflow-hidden rounded-2xl border border-black/10 bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] backdrop-blur-2xl">
-      <span className="absolute inset-0 z-0 bg-gradient-to-br from-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-      <CardHeader className="relative z-10 border-b border-black/5 pb-4">
-        <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-          <span className="h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
-          Recent Activity
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="relative z-10 pt-6">
+    <DashboardPanel
+      title="Recent Activity"
+      accentClassName="bg-[#10b981] text-[#10b981]"
+      contentClassName="relative z-10 pt-6"
+    >
         {entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white/50 p-8 text-center text-foreground/40">
             <p>No workouts logged yet.</p>
@@ -75,15 +72,15 @@ export function RecentActivity({ entries }: RecentActivityProps) {
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-white to-black/5 border border-black/10 shadow-sm">
                     <span className="text-xs font-bold uppercase text-foreground/50">
-                      {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short" })}
+                      {formatDisplayDate(entry.date, { month: "short" })}
                     </span>
                     <span className="text-lg font-black text-foreground">
-                      {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { day: "numeric" })}
+                      {formatDisplayDate(entry.date, { day: "numeric" })}
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-foreground/90">
-                      {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long" })} Session
+                      {formatDisplayDate(entry.date, { weekday: "long" })} Session
                     </span>
                     {entry.notes && (
                       <span className="mt-1 line-clamp-1 max-w-[250px] text-xs text-foreground/50">
@@ -119,7 +116,6 @@ export function RecentActivity({ entries }: RecentActivityProps) {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+    </DashboardPanel>
   );
 }

@@ -1,10 +1,23 @@
 "use server";
 
-import { db } from "@/db";
-import { userSettings, weightLog } from "@/db/schema";
-import { eq, asc, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import type { WeightLossLevel, WeightGoalStatus } from "@/types";
+import { asc } from "drizzle-orm";
+import { db } from "@/db";
+import { weightLog } from "@/db/schema";
+import { DEFAULT_GOAL_KEYS } from "@/lib/constants";
+import { SETTINGS_REVALIDATE_PATHS } from "@/lib/domain";
+import { getDateKeyDiff } from "@/lib/date";
+import {
+  getNumericSetting,
+  getNumericSettings,
+  upsertNumericSetting,
+} from "@/lib/settings-store";
+import type { GoalSettingsValues } from "@/lib/validators";
+import type {
+  UserGoalSettings,
+  WeightGoalStatus,
+  WeightLossLevel,
+} from "@/types";
 
 const LEVEL_THRESHOLDS = [
   { level: 1, xpNeeded: 0, title: "Starting Out" },
@@ -19,35 +32,51 @@ const LEVEL_THRESHOLDS = [
   { level: 10, xpNeeded: 2000, title: "Alpha" },
 ];
 
-export async function getWeightGoal(): Promise<number | null> {
-  const result = await db
-    .select({ value: userSettings.value })
-    .from(userSettings)
-    .where(eq(userSettings.key, "goalWeight"))
-    .limit(1);
+function roundOneDecimal(value: number) {
+  return Math.round(value * 10) / 10;
+}
 
-  return result[0] ? Number(result[0].value) : null;
+export async function getWeightGoal() {
+  return getNumericSetting(DEFAULT_GOAL_KEYS.goalWeight);
 }
 
 export async function setWeightGoal(goalWeight: number) {
-  const existing = await db
-    .select({ id: userSettings.id })
-    .from(userSettings)
-    .where(eq(userSettings.key, "goalWeight"))
-    .limit(1);
+  await upsertNumericSetting(DEFAULT_GOAL_KEYS.goalWeight, goalWeight);
+  SETTINGS_REVALIDATE_PATHS.forEach((path) => revalidatePath(path));
+  return { success: true };
+}
 
-  if (existing[0]) {
-    await db
-      .update(userSettings)
-      .set({ value: String(goalWeight) })
-      .where(eq(userSettings.key, "goalWeight"));
-  } else {
-    await db
-      .insert(userSettings)
-      .values({ key: "goalWeight", value: String(goalWeight) });
+export async function getGoalSettings(): Promise<UserGoalSettings> {
+  const settings = await getNumericSettings([
+    DEFAULT_GOAL_KEYS.goalWeight,
+    DEFAULT_GOAL_KEYS.waterGoalOz,
+    DEFAULT_GOAL_KEYS.weeklyWorkoutTarget,
+    DEFAULT_GOAL_KEYS.weeklyCardioMinutesTarget,
+    DEFAULT_GOAL_KEYS.weeklyWeighInTarget,
+    DEFAULT_GOAL_KEYS.dailyStepTarget,
+  ] as const);
+
+  return {
+    goalWeight: settings.goalWeight,
+    waterGoalOz: settings.waterGoalOz,
+    weeklyWorkoutTarget: settings.weeklyWorkoutTarget,
+    weeklyCardioMinutesTarget: settings.weeklyCardioMinutesTarget,
+    weeklyWeighInTarget: settings.weeklyWeighInTarget,
+    dailyStepTarget: settings.dailyStepTarget,
+  };
+}
+
+export async function saveGoalSettings(values: GoalSettingsValues) {
+  const updates = Object.entries(values).filter(([, value]) => value !== undefined) as [
+    keyof GoalSettingsValues,
+    number,
+  ][];
+
+  for (const [key, value] of updates) {
+    await upsertNumericSetting(key, value);
   }
 
-  revalidatePath("/");
+  SETTINGS_REVALIDATE_PATHS.forEach((path) => revalidatePath(path));
   return { success: true };
 }
 
@@ -69,23 +98,16 @@ export async function getWeightLossLevel(): Promise<WeightLossLevel> {
     };
   }
 
-  // Find the lowest weight ever recorded (best progress)
-  const allWeights = await db
+  const bestWeight = await db
     .select({ weightLbs: weightLog.weightLbs })
     .from(weightLog)
     .orderBy(asc(weightLog.weightLbs))
     .limit(1);
 
   const startWeight = firstWeight[0].weightLbs;
-  const bestWeight = allWeights[0]?.weightLbs ?? startWeight;
+  const lowestWeight = bestWeight[0]?.weightLbs ?? startWeight;
+  const totalXP = Math.max(0, Math.round((startWeight - lowestWeight) * 10));
 
-  // Each 0.1 lb lost = 1 XP (only gains from loss, never negative)
-  const totalXP = Math.max(
-    0,
-    Math.round((startWeight - bestWeight) * 10)
-  );
-
-  // Find current level
   let cumulativeXP = 0;
   let currentLevel = LEVEL_THRESHOLDS[0];
 
@@ -98,7 +120,6 @@ export async function getWeightLossLevel(): Promise<WeightLossLevel> {
     }
   }
 
-  // Calculate XP within current level
   let xpBefore = 0;
   for (const threshold of LEVEL_THRESHOLDS) {
     if (threshold.level <= currentLevel.level) {
@@ -106,20 +127,18 @@ export async function getWeightLossLevel(): Promise<WeightLossLevel> {
     }
   }
 
-  const nextLevel = LEVEL_THRESHOLDS.find(
-    (t) => t.level === currentLevel.level + 1
-  );
-  const xpIntoLevel = totalXP - xpBefore;
+  const nextLevel = LEVEL_THRESHOLDS.find((entry) => entry.level === currentLevel.level + 1);
+  const currentXP = totalXP - xpBefore;
   const xpForNextLevel = nextLevel?.xpNeeded ?? 0;
   const progressPercent =
     xpForNextLevel > 0
-      ? Math.min(100, Math.round((xpIntoLevel / xpForNextLevel) * 100))
+      ? Math.min(100, Math.round((currentXP / xpForNextLevel) * 100))
       : 100;
 
   return {
     level: currentLevel.level,
     title: currentLevel.title,
-    currentXP: xpIntoLevel,
+    currentXP,
     xpForNextLevel,
     totalXP,
     progressPercent,
@@ -127,22 +146,19 @@ export async function getWeightLossLevel(): Promise<WeightLossLevel> {
 }
 
 export async function getGoalStatus(): Promise<WeightGoalStatus> {
-  const goalWeight = await getWeightGoal();
+  const [goalWeight, weights] = await Promise.all([
+    getWeightGoal(),
+    db
+      .select({
+        date: weightLog.date,
+        weightLbs: weightLog.weightLbs,
+      })
+      .from(weightLog)
+      .orderBy(asc(weightLog.date), asc(weightLog.id)),
+  ]);
 
-  const firstWeight = await db
-    .select({ weightLbs: weightLog.weightLbs })
-    .from(weightLog)
-    .orderBy(asc(weightLog.date), asc(weightLog.id))
-    .limit(1);
-
-  const latestWeight = await db
-    .select({ weightLbs: weightLog.weightLbs })
-    .from(weightLog)
-    .orderBy(desc(weightLog.date), desc(weightLog.id))
-    .limit(1);
-
-  const startWeight = firstWeight[0]?.weightLbs ?? null;
-  const currentWeight = latestWeight[0]?.weightLbs ?? null;
+  const startWeight = weights[0]?.weightLbs ?? null;
+  const currentWeight = weights[weights.length - 1]?.weightLbs ?? null;
 
   if (!startWeight || !currentWeight || !goalWeight) {
     return {
@@ -152,16 +168,45 @@ export async function getGoalStatus(): Promise<WeightGoalStatus> {
       lostSoFar: 0,
       remaining: 0,
       progressPercent: 0,
+      rollingAverage: null,
+      weeklyLossRate: null,
+      forecastDaysToGoal: null,
     };
   }
 
+  const recentWindow = weights.slice(Math.max(0, weights.length - 7));
+  const rollingAverage =
+    recentWindow.length > 0
+      ? roundOneDecimal(
+          recentWindow.reduce((sum, entry) => sum + entry.weightLbs, 0) / recentWindow.length
+        )
+      : currentWeight;
+
+  const recentRateWindow = weights.slice(Math.max(0, weights.length - 4));
+  let weeklyLossRate: number | null = null;
+
+  if (recentRateWindow.length >= 2) {
+    const first = recentRateWindow[0];
+    const last = recentRateWindow[recentRateWindow.length - 1];
+    const days = Math.max(
+      1,
+      Math.round(getDateKeyDiff(first.date, last.date) / 86400000)
+    );
+    weeklyLossRate = roundOneDecimal(((first.weightLbs - last.weightLbs) / days) * 7);
+  }
+
+  const lostSoFar = roundOneDecimal(startWeight - currentWeight);
+  const remaining = roundOneDecimal(currentWeight - goalWeight);
   const totalToLose = startWeight - goalWeight;
-  const lostSoFar = Math.round((startWeight - currentWeight) * 10) / 10;
-  const remaining = Math.round((currentWeight - goalWeight) * 10) / 10;
   const progressPercent =
     totalToLose > 0
       ? Math.min(100, Math.max(0, Math.round((lostSoFar / totalToLose) * 100)))
       : 0;
+
+  const forecastDaysToGoal =
+    weeklyLossRate && weeklyLossRate > 0 && remaining > 0
+      ? Math.ceil(remaining / (weeklyLossRate / 7))
+      : null;
 
   return {
     goalWeight,
@@ -170,5 +215,8 @@ export async function getGoalStatus(): Promise<WeightGoalStatus> {
     lostSoFar,
     remaining,
     progressPercent,
+    rollingAverage,
+    weeklyLossRate,
+    forecastDaysToGoal,
   };
 }

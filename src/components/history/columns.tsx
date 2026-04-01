@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDisplayDate } from "@/lib/date";
 import type {
   ExerciseLogEntry,
   CardioLogEntry,
@@ -28,15 +29,6 @@ function SortableHeader({
   );
 }
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function getExerciseColumns(
   onEdit: (entry: ExerciseLogEntry) => void,
   onDelete: (id: number) => void | Promise<void>
@@ -45,7 +37,7 @@ export function getExerciseColumns(
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => formatDate(row.getValue<string>("date")),
+      cell: ({ row }) => formatDisplayDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "exerciseName",
@@ -105,7 +97,7 @@ export function getCardioColumns(
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => formatDate(row.getValue<string>("date")),
+      cell: ({ row }) => formatDisplayDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "cardioType",
@@ -155,7 +147,7 @@ export function getWeightColumns(
     {
       accessorKey: "date",
       header: ({ column }) => <SortableHeader column={column} label="Date" />,
-      cell: ({ row }) => formatDate(row.getValue<string>("date")),
+      cell: ({ row }) => formatDisplayDate(row.getValue<string>("date")),
     },
     {
       accessorKey: "weightLbs",

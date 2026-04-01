@@ -1,150 +1,154 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Target, Droplets, Save } from "lucide-react";
+import { Loader2, Save, Target, Footprints, CalendarRange } from "lucide-react";
 import { toast } from "sonner";
+import { saveGoalSettings } from "@/actions/goal-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { setWeightGoal } from "@/actions/goal-actions";
-import { setWaterGoal } from "@/actions/water-actions";
+import type { UserGoalSettings } from "@/types";
 
 interface SettingsFormProps {
-  currentWeightGoal: number | null;
-  currentWaterGoal: number | null;
+  settings: UserGoalSettings;
 }
 
-export function SettingsForm({
-  currentWeightGoal,
-  currentWaterGoal,
-}: SettingsFormProps) {
+type SettingsFieldKey = keyof UserGoalSettings;
+
+function toOptionalNumber(value: string) {
+  return value.trim() ? Number(value) : undefined;
+}
+
+const weightAndHydrationFields: Array<{
+  key: SettingsFieldKey;
+  label: string;
+  type?: "number";
+  step?: string;
+}> = [
+  { key: "goalWeight", label: "Goal Weight (lbs)", type: "number", step: "0.1" },
+  { key: "waterGoalOz", label: "Daily Water Goal (oz)", type: "number" },
+];
+
+const adherenceFields: Array<{
+  key: SettingsFieldKey;
+  label: string;
+}> = [
+  { key: "weeklyWorkoutTarget", label: "Workouts / week" },
+  { key: "weeklyCardioMinutesTarget", label: "Cardio minutes / week" },
+  { key: "weeklyWeighInTarget", label: "Weigh-ins / week" },
+];
+
+export function SettingsForm({ settings }: SettingsFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [weightGoalInput, setWeightGoalInput] = useState(
-    currentWeightGoal ? String(currentWeightGoal) : ""
-  );
-  const [waterGoalInput, setWaterGoalInput] = useState(
-    currentWaterGoal ? String(currentWaterGoal) : ""
-  );
+  const [form, setForm] = useState({
+    goalWeight: settings.goalWeight ? String(settings.goalWeight) : "",
+    waterGoalOz: settings.waterGoalOz ? String(settings.waterGoalOz) : "",
+    weeklyWorkoutTarget: settings.weeklyWorkoutTarget
+      ? String(settings.weeklyWorkoutTarget)
+      : "",
+    weeklyCardioMinutesTarget: settings.weeklyCardioMinutesTarget
+      ? String(settings.weeklyCardioMinutesTarget)
+      : "",
+    weeklyWeighInTarget: settings.weeklyWeighInTarget
+      ? String(settings.weeklyWeighInTarget)
+      : "",
+    dailyStepTarget: settings.dailyStepTarget ? String(settings.dailyStepTarget) : "",
+  });
 
-  const handleSaveWeightGoal = useCallback(() => {
-    const weight = Number(weightGoalInput);
-    if (!weight || weight <= 0) {
-      toast.error("Enter a valid weight");
-      return;
-    }
+  function updateField(key: keyof typeof form, value: string) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleSave() {
     startTransition(async () => {
       try {
-        await setWeightGoal(weight);
-        toast.success("Weight goal updated!");
+        await saveGoalSettings({
+          goalWeight: toOptionalNumber(form.goalWeight),
+          waterGoalOz: toOptionalNumber(form.waterGoalOz),
+          weeklyWorkoutTarget: toOptionalNumber(form.weeklyWorkoutTarget),
+          weeklyCardioMinutesTarget: toOptionalNumber(form.weeklyCardioMinutesTarget),
+          weeklyWeighInTarget: toOptionalNumber(form.weeklyWeighInTarget),
+          dailyStepTarget: toOptionalNumber(form.dailyStepTarget),
+        });
+        toast.success("Targets updated.");
         router.refresh();
       } catch {
-        toast.error("Failed to save weight goal");
+        toast.error("Failed to save targets.");
       }
     });
-  }, [weightGoalInput, router]);
-
-  const handleSaveWaterGoal = useCallback(() => {
-    const goal = Number(waterGoalInput);
-    if (!goal || goal <= 0) {
-      toast.error("Enter a valid goal");
-      return;
-    }
-    startTransition(async () => {
-      try {
-        await setWaterGoal(goal);
-        toast.success("Water goal updated!");
-        router.refresh();
-      } catch {
-        toast.error("Failed to save water goal");
-      }
-    });
-  }, [waterGoalInput, router]);
+  }
 
   return (
     <div className="space-y-6">
-      {/* Weight Loss Goal */}
       <Card className="app-surface overflow-visible">
         <CardHeader className="border-b border-black/5 pb-4">
           <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
             <Target className="h-5 w-5 text-primary" />
-            Weight Loss Goal
+            Weight and Hydration Targets
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <p className="mb-4 text-sm text-foreground/50">
-            Set your target body weight. You&apos;ll earn XP for every 0.1 lb
-            lost from your starting weight.
-          </p>
-          <div className="flex items-end gap-3">
-            <div className="flex-1 max-w-xs">
-              <label className="mb-1.5 block text-sm font-medium">
-                Goal Weight (lbs)
-              </label>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+          {weightAndHydrationFields.map((field) => (
+            <div key={field.key}>
+              <label className="mb-1.5 block text-sm font-medium">{field.label}</label>
               <Input
-                type="number"
-                step="0.1"
-                placeholder="e.g. 170"
-                value={weightGoalInput}
-                onChange={(e) => setWeightGoalInput(e.target.value)}
+                type={field.type}
+                step={field.step}
+                value={form[field.key] ?? ""}
+                onChange={(event) => updateField(field.key, event.target.value)}
                 disabled={isPending}
               />
             </div>
-            <Button
-              onClick={handleSaveWeightGoal}
-              disabled={isPending}
-              className="cursor-pointer"
-            >
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              Save
-            </Button>
-          </div>
+          ))}
         </CardContent>
       </Card>
 
-      {/* Water Goal */}
       <Card className="app-surface overflow-visible">
         <CardHeader className="border-b border-black/5 pb-4">
           <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
-            <Droplets className="h-5 w-5 text-[#0ea5e9]" />
-            Daily Water Goal
+            <CalendarRange className="h-5 w-5 text-[#0ea5e9]" />
+            Weekly Adherence Targets
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <p className="mb-4 text-sm text-foreground/50">
-            How many ounces of water do you want to drink each day?
-          </p>
-          <div className="flex items-end gap-3">
-            <div className="flex-1 max-w-xs">
-              <label className="mb-1.5 block text-sm font-medium">
-                Daily Goal (oz)
-              </label>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-3">
+          {adherenceFields.map((field) => (
+            <div key={field.key}>
+              <label className="mb-1.5 block text-sm font-medium">{field.label}</label>
               <Input
                 type="number"
-                step="1"
-                placeholder="e.g. 128"
-                value={waterGoalInput}
-                onChange={(e) => setWaterGoalInput(e.target.value)}
+                value={form[field.key] ?? ""}
+                onChange={(event) => updateField(field.key, event.target.value)}
                 disabled={isPending}
               />
             </div>
-            <Button
-              onClick={handleSaveWaterGoal}
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card className="app-surface overflow-visible">
+        <CardHeader className="border-b border-black/5 pb-4">
+          <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
+            <Footprints className="h-5 w-5 text-emerald-600" />
+            Daily Movement
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Daily step target</label>
+            <Input
+              type="number"
+              value={form.dailyStepTarget}
+              onChange={(event) => updateField("dailyStepTarget", event.target.value)}
               disabled={isPending}
-              className="cursor-pointer"
-            >
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              Save
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleSave} disabled={isPending} className="cursor-pointer">
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save Targets
             </Button>
           </div>
         </CardContent>

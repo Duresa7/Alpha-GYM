@@ -1,32 +1,45 @@
 "use server";
 
-import { db } from "@/db";
-import { exercises, cardio, weightLog, workoutNotes } from "@/db/schema";
-import { count, sum, desc, asc, sql, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  cardio,
+  exercises,
+  plannedWorkouts,
+  weeklyCheckIns,
+  weightLog,
+  workoutSessions,
+} from "@/db/schema";
 import type {
   DashboardStats,
-  WeightTrendPoint,
-  VolumeTrendPoint,
   RecentActivityEntry,
-  WeightProgressionPoint,
+  StrengthProgressionPoint,
+  VolumeTrendPoint,
+  WeightTrendPoint,
+  WeeklyCheckInInsight,
 } from "@/types";
+import { getDayDiff, formatDateKey } from "@/lib/date";
+import { getAdherenceSummary } from "./plan-actions";
+
+function roundOneDecimal(value: number) {
+  return Math.round(value * 10) / 10;
+}
 
 export async function getStats(): Promise<DashboardStats> {
-  const [exerciseCount] = await db
-    .select({ count: count() })
-    .from(exercises);
+  const [{ count: exerciseCount }, { count: cardioCount }, { count: sessionCount }] =
+    await Promise.all([
+      db.select({ count: count() }).from(exercises).then((rows) => rows[0]),
+      db.select({ count: count() }).from(cardio).then((rows) => rows[0]),
+      db.select({ count: count() }).from(workoutSessions).then((rows) => rows[0]),
+    ]);
 
-  const [cardioCount] = await db
-    .select({ count: count() })
-    .from(cardio);
-
-  const [cardioMinutes] = await db
-    .select({ total: sum(cardio.durationMin) })
+  const [{ total }] = await db
+    .select({ total: sql<number>`SUM(${cardio.durationMin})` })
     .from(cardio);
 
   const latestWeight = await db
-    .select({ weightLbs: weightLog.weightLbs })
+    .select({ date: weightLog.date, weightLbs: weightLog.weightLbs })
     .from(weightLog)
     .orderBy(desc(weightLog.date), desc(weightLog.id))
     .limit(1);
@@ -41,16 +54,27 @@ export async function getStats(): Promise<DashboardStats> {
   const startingWeight = firstWeight[0]?.weightLbs ?? null;
   const weightChange =
     currentWeight !== null && startingWeight !== null
-      ? Math.round((currentWeight - startingWeight) * 10) / 10
+      ? roundOneDecimal(currentWeight - startingWeight)
       : null;
 
+  const adherence = await getAdherenceSummary();
+  const daysSinceLastWeighIn = latestWeight[0]
+    ? getDayDiff(latestWeight[0].date, formatDateKey(new Date()))
+    : null;
+
   return {
-    totalExercises: exerciseCount.count,
-    totalCardioSessions: cardioCount.count,
-    totalCardioMinutes: Number(cardioMinutes.total) || 0,
+    totalExerciseEntries: exerciseCount,
+    totalCardioEntries: cardioCount,
+    totalCardioMinutes: Number(total) || 0,
+    totalSessions: sessionCount,
     currentWeight,
     startingWeight,
     weightChange,
+    plannedThisWeek: adherence.plannedThisWeek,
+    completedThisWeek: adherence.completedThisWeek,
+    completionRate: adherence.completionRate,
+    currentStreak: adherence.currentStreak,
+    daysSinceLastWeighIn,
   };
 }
 
@@ -61,9 +85,23 @@ export async function getWeightTrend(): Promise<WeightTrendPoint[]> {
       weightLbs: weightLog.weightLbs,
     })
     .from(weightLog)
-    .orderBy(asc(weightLog.date));
+    .orderBy(asc(weightLog.date), asc(weightLog.id));
 
-  return results;
+  return results.map((entry, index) => {
+    const window = results.slice(Math.max(0, index - 6), index + 1);
+    const rollingAvgWeight =
+      window.length > 0
+        ? roundOneDecimal(
+            window.reduce((sum, item) => sum + item.weightLbs, 0) / window.length
+          )
+        : entry.weightLbs;
+
+    return {
+      date: entry.date,
+      weightLbs: entry.weightLbs,
+      rollingAvgWeight,
+    };
+  });
 }
 
 export async function getVolumeTrend(): Promise<VolumeTrendPoint[]> {
@@ -76,36 +114,75 @@ export async function getVolumeTrend(): Promise<VolumeTrendPoint[]> {
     .groupBy(exercises.date)
     .orderBy(asc(exercises.date));
 
-  return results.map((r) => ({
-    date: r.date,
-    totalVolume: Number(r.totalVolume) || 0,
+  return results.map((result) => ({
+    date: result.date,
+    totalVolume: Number(result.totalVolume) || 0,
   }));
 }
 
-export async function getRecentActivity(
-  limit: number = 5
-): Promise<RecentActivityEntry[]> {
-  const results = await db
+export async function getRecentActivity(limit: number = 5): Promise<RecentActivityEntry[]> {
+  const sessions = await db
     .select({
-      id: workoutNotes.id,
-      date: workoutNotes.date,
-      workoutType: workoutNotes.workoutType,
-      notes: workoutNotes.notes,
+      id: workoutSessions.id,
+      date: workoutSessions.date,
+      workoutType: workoutSessions.workoutType,
+      notes: workoutSessions.notes,
+      title: workoutSessions.title,
+      sessionStatus: workoutSessions.sessionStatus,
+      plannedWorkoutId: workoutSessions.plannedWorkoutId,
     })
-    .from(workoutNotes)
-    .orderBy(desc(workoutNotes.date), desc(workoutNotes.id))
+    .from(workoutSessions)
+    .orderBy(desc(workoutSessions.date), desc(workoutSessions.id))
     .limit(limit);
 
-  return results;
+  return sessions.map((session) => ({
+    ...session,
+    workoutType: session.workoutType as RecentActivityEntry["workoutType"],
+    sessionStatus: session.sessionStatus as RecentActivityEntry["sessionStatus"],
+  }));
 }
 
 export async function deleteActivityLog(id: number) {
-  await db.delete(workoutNotes).where(eq(workoutNotes.id, id));
+  await db.delete(exercises).where(eq(exercises.sessionId, id));
+  await db.delete(cardio).where(eq(cardio.sessionId, id));
+  await db.delete(weightLog).where(eq(weightLog.sessionId, id));
+
+  const session = await db
+    .select({ plannedWorkoutId: workoutSessions.plannedWorkoutId })
+    .from(workoutSessions)
+    .where(eq(workoutSessions.id, id))
+    .limit(1);
+
+  if (session[0]?.plannedWorkoutId) {
+    await db
+      .update(plannedWorkouts)
+      .set({ status: "pending" })
+      .where(eq(plannedWorkouts.id, session[0].plannedWorkoutId));
+  }
+
+  await db.delete(workoutSessions).where(eq(workoutSessions.id, id));
+
   revalidatePath("/");
+  revalidatePath("/history");
+  revalidatePath("/log");
   return { success: true };
 }
 
-export async function getWeightProgression(): Promise<WeightProgressionPoint[]> {
+export async function getStrengthProgression(
+  exerciseName?: string
+): Promise<StrengthProgressionPoint[]> {
+  const allExerciseNames = await db
+    .selectDistinct({ exerciseName: exercises.exerciseName })
+    .from(exercises)
+    .orderBy(asc(exercises.exerciseName));
+
+  const selectedExercise =
+    exerciseName || allExerciseNames[0]?.exerciseName || undefined;
+
+  if (!selectedExercise) {
+    return [];
+  }
+
   const results = await db
     .select({
       date: exercises.date,
@@ -113,15 +190,14 @@ export async function getWeightProgression(): Promise<WeightProgressionPoint[]> 
       weightLbs: exercises.weightLbs,
     })
     .from(exercises)
+    .where(eq(exercises.exerciseName, selectedExercise))
     .orderBy(asc(exercises.date), asc(exercises.id));
-
-  if (results.length === 0) return [];
 
   let changeSum = 0;
   let changeCount = 0;
 
-  return results.map((entry, i) => {
-    if (i === 0) {
+  return results.map((entry, index) => {
+    if (index === 0) {
       return {
         date: entry.date,
         exerciseName: entry.exerciseName,
@@ -132,16 +208,15 @@ export async function getWeightProgression(): Promise<WeightProgressionPoint[]> 
       };
     }
 
-    const prev = results[i - 1];
-    const weightChange = Math.round((entry.weightLbs - prev.weightLbs) * 10) / 10;
+    const previous = results[index - 1];
+    const weightChange = roundOneDecimal(entry.weightLbs - previous.weightLbs);
     const percentChange =
-      prev.weightLbs !== 0
-        ? Math.round(((entry.weightLbs - prev.weightLbs) / prev.weightLbs) * 1000) / 10
+      previous.weightLbs !== 0
+        ? roundOneDecimal(((entry.weightLbs - previous.weightLbs) / previous.weightLbs) * 100)
         : 0;
 
     changeSum += weightChange;
-    changeCount++;
-    const runningAvgChange = Math.round((changeSum / changeCount) * 10) / 10;
+    changeCount += 1;
 
     return {
       date: entry.date,
@@ -149,7 +224,42 @@ export async function getWeightProgression(): Promise<WeightProgressionPoint[]> 
       weightLbs: entry.weightLbs,
       weightChange,
       percentChange,
-      runningAvgChange,
+      runningAvgChange: roundOneDecimal(changeSum / changeCount),
     };
   });
+}
+
+export async function getStrengthProgressionOptions() {
+  const rows = await db
+    .selectDistinct({ exerciseName: exercises.exerciseName })
+    .from(exercises)
+    .orderBy(asc(exercises.exerciseName));
+
+  return rows.map((row) => row.exerciseName);
+}
+
+export async function getWeeklyCheckInInsight(): Promise<WeeklyCheckInInsight> {
+  const latest = await db
+    .select({
+      id: weeklyCheckIns.id,
+      date: weeklyCheckIns.date,
+      waistInches: weeklyCheckIns.waistInches,
+      energyLevel: weeklyCheckIns.energyLevel,
+      stepCount: weeklyCheckIns.stepCount,
+      frontPhotoUrl: weeklyCheckIns.frontPhotoUrl,
+      sidePhotoUrl: weeklyCheckIns.sidePhotoUrl,
+      notes: weeklyCheckIns.notes,
+    })
+    .from(weeklyCheckIns)
+    .orderBy(desc(weeklyCheckIns.date), desc(weeklyCheckIns.id))
+    .limit(1);
+
+  const [countRow] = await db
+    .select({ count: count() })
+    .from(weeklyCheckIns);
+
+  return {
+    latest: latest[0] ?? null,
+    count: countRow.count,
+  };
 }

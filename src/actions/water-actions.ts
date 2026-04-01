@@ -1,15 +1,21 @@
 "use server";
 
-import { db } from "@/db";
-import { waterIntake, userSettings } from "@/db/schema";
-import { eq, gte, desc, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { format, subDays } from "date-fns";
+import { desc, eq, gte, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { waterIntake } from "@/db/schema";
+import { DEFAULT_GOAL_KEYS } from "@/lib/constants";
+import { SETTINGS_REVALIDATE_PATHS } from "@/lib/domain";
+import { formatDateKey, getDateKeyOffset } from "@/lib/date";
+import { getNumericSetting, upsertNumericSetting } from "@/lib/settings-store";
 import type { WaterIntakeStatus } from "@/types";
 
 export async function addWaterIntake(amountOz: number) {
-  const today = format(new Date(), "yyyy-MM-dd");
-  await db.insert(waterIntake).values({ date: today, amountOz });
+  await db.insert(waterIntake).values({
+    date: formatDateKey(new Date()),
+    amountOz,
+  });
+
   revalidatePath("/");
   return { success: true };
 }
@@ -20,40 +26,20 @@ export async function deleteWaterEntry(id: number) {
   return { success: true };
 }
 
-export async function getWaterGoal(): Promise<number | null> {
-  const result = await db
-    .select({ value: userSettings.value })
-    .from(userSettings)
-    .where(eq(userSettings.key, "waterGoalOz"))
-    .limit(1);
-  return result[0] ? Number(result[0].value) : null;
+export async function getWaterGoal() {
+  return getNumericSetting(DEFAULT_GOAL_KEYS.waterGoalOz);
 }
 
 export async function setWaterGoal(goalOz: number) {
-  const existing = await db
-    .select({ id: userSettings.id })
-    .from(userSettings)
-    .where(eq(userSettings.key, "waterGoalOz"))
-    .limit(1);
-
-  if (existing[0]) {
-    await db
-      .update(userSettings)
-      .set({ value: String(goalOz) })
-      .where(eq(userSettings.key, "waterGoalOz"));
-  } else {
-    await db
-      .insert(userSettings)
-      .values({ key: "waterGoalOz", value: String(goalOz) });
-  }
-
-  revalidatePath("/");
+  await upsertNumericSetting(DEFAULT_GOAL_KEYS.waterGoalOz, goalOz);
+  SETTINGS_REVALIDATE_PATHS.forEach((path) => revalidatePath(path));
   return { success: true };
 }
 
 export async function getWaterIntakeStatus(): Promise<WaterIntakeStatus> {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const sevenDaysAgo = format(subDays(new Date(), 6), "yyyy-MM-dd");
+  const currentDate = new Date();
+  const today = formatDateKey(currentDate);
+  const sevenDaysAgo = getDateKeyOffset(currentDate, -6);
 
   const [goalOz, todayEntries, weeklyEntries] = await Promise.all([
     getWaterGoal(),
@@ -72,27 +58,29 @@ export async function getWaterIntakeStatus(): Promise<WaterIntakeStatus> {
       .orderBy(waterIntake.date),
   ]);
 
-  const todayTotal =
-    Math.round(todayEntries.reduce((sum, e) => sum + e.amountOz, 0) * 10) / 10;
-
+  const todayTotal = Math.round(todayEntries.reduce((sum, entry) => sum + entry.amountOz, 0) * 10) / 10;
   const progressPercent =
-    goalOz && goalOz > 0
-      ? Math.min(100, Math.round((todayTotal / goalOz) * 100))
-      : 0;
+    goalOz && goalOz > 0 ? Math.min(100, Math.round((todayTotal / goalOz) * 100)) : 0;
 
-  // Build 7-day array (fill in missing days with 0)
-  const weeklyData: { date: string; totalOz: number }[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = format(subDays(new Date(), i), "yyyy-MM-dd");
-    const found = weeklyEntries.find((e) => e.date === d);
-    weeklyData.push({ date: d, totalOz: found ? found.totalOz : 0 });
-  }
+  const weeklyData = Array.from({ length: 7 }, (_, index) => {
+    const date = getDateKeyOffset(currentDate, index - 6);
+    const entry = weeklyEntries.find((row) => row.date === date);
+    return {
+      date,
+      totalOz: entry ? Number(entry.totalOz) : 0,
+    };
+  });
 
-  return { todayTotal, goalOz, progressPercent, weeklyData };
+  return {
+    todayTotal,
+    goalOz,
+    progressPercent,
+    weeklyData,
+  };
 }
 
 export async function getTodayWaterEntries() {
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = formatDateKey(new Date());
   return db
     .select({
       id: waterIntake.id,

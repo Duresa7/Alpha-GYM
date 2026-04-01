@@ -17,4 +17,4 @@ if (!fs.existsSync(dataDir)) {
 const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle({ client: sqlite, schema });

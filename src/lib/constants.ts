@@ -1,9 +1,57 @@
+import {
+  EXERCISE_TRACKING_MODE_VALUES,
+  GOAL_SETTING_KEYS,
+  PLAN_COMPLETION_MODE_VALUES,
+  PLANNED_WORKOUT_STATUS_VALUES,
+  WORKOUT_TYPE_VALUES,
+} from "@/lib/domain";
+
 export const WORKOUT_TYPES = [
   { value: "exercise_only", label: "Exercise Only" },
   { value: "cardio_only", label: "Cardio Only" },
   { value: "both", label: "Both" },
   { value: "weight_only", label: "Weigh-In Only" },
   { value: "rest_day", label: "Rest Day" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof WORKOUT_TYPE_VALUES)[number];
+  label: string;
+}>;
+
+export const PLAN_COMPLETION_MODES = [
+  { value: "completed", label: "Complete as Planned" },
+  { value: "partial", label: "Complete with Changes" },
+  { value: "unplanned", label: "Free Workout" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof PLAN_COMPLETION_MODE_VALUES)[number];
+  label: string;
+}>;
+
+export const PLANNED_WORKOUT_STATUSES = PLANNED_WORKOUT_STATUS_VALUES;
+
+export const EXERCISE_TRACKING_MODES = [
+  { value: "load", label: "Load-Based" },
+  { value: "bodyweight", label: "Bodyweight" },
+  { value: "time", label: "Time-Based" },
+  { value: "distance", label: "Distance-Based" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof EXERCISE_TRACKING_MODE_VALUES)[number];
+  label: string;
+}>;
+
+export const SKIP_REASONS = [
+  "Schedule conflict",
+  "Low energy",
+  "Sore / recovery",
+  "Travel",
+  "Motivation dip",
+] as const;
+
+export const ENERGY_LEVELS = [
+  { value: 1, label: "1 - Rough" },
+  { value: 2, label: "2 - Low" },
+  { value: 3, label: "3 - Average" },
+  { value: 4, label: "4 - Good" },
+  { value: 5, label: "5 - Great" },
 ] as const;
 
 export const EXERCISE_CATEGORIES = [
@@ -57,6 +105,7 @@ export const SECTION_COLORS: Record<string, string> = {
 
 export const MAX_EXERCISES = 10;
 export const MAX_CARDIO_ENTRIES = 5;
+export const MAX_TEMPLATE_ITEMS = 12;
 
 export const DAY_ORDER = [
   "monday",
@@ -67,3 +116,5 @@ export const DAY_ORDER = [
   "saturday",
   "sunday",
 ] as const;
+
+export const DEFAULT_GOAL_KEYS = GOAL_SETTING_KEYS;

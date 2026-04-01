@@ -1,14 +1,15 @@
 "use server";
 
-import { db } from "@/db";
-import { exercises, cardio, weightLog } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { cardio, exercises, weightLog } from "@/db/schema";
 
 export async function getExerciseLogs() {
-  return await db
+  return db
     .select({
       id: exercises.id,
+      sessionId: exercises.sessionId,
       date: exercises.date,
       exerciseName: exercises.exerciseName,
       sets: exercises.sets,
@@ -20,9 +21,10 @@ export async function getExerciseLogs() {
 }
 
 export async function getCardioLogs() {
-  return await db
+  return db
     .select({
       id: cardio.id,
+      sessionId: cardio.sessionId,
       date: cardio.date,
       cardioType: cardio.cardioType,
       durationMin: cardio.durationMin,
@@ -32,9 +34,10 @@ export async function getCardioLogs() {
 }
 
 export async function getWeightLogs() {
-  return await db
+  return db
     .select({
       id: weightLog.id,
+      sessionId: weightLog.sessionId,
       date: weightLog.date,
       weightLbs: weightLog.weightLbs,
     })
@@ -83,6 +86,7 @@ export async function updateExerciseLog(
       reps: data.reps,
     })
     .where(eq(exercises.id, id));
+
   revalidatePath("/history");
   revalidatePath("/");
   return { success: true };
@@ -104,6 +108,7 @@ export async function updateCardioLog(
       durationMin: data.durationMin,
     })
     .where(eq(cardio.id, id));
+
   revalidatePath("/history");
   revalidatePath("/");
   return { success: true };
@@ -123,6 +128,7 @@ export async function updateWeightLog(
       weightLbs: data.weightLbs,
     })
     .where(eq(weightLog.id, id));
+
   revalidatePath("/history");
   revalidatePath("/");
   return { success: true };
