@@ -7,7 +7,7 @@ import fs from "fs";
 const dbFileName = process.env.DB_FILE_NAME?.trim() || "./data/alpha-gym.db";
 const dbPath = path.isAbsolute(dbFileName)
   ? dbFileName
-  : path.resolve(process.cwd(), dbFileName);
+  : path.resolve(/* turbopackIgnore: true */ process.cwd(), dbFileName);
 
 const dataDir = path.dirname(dbPath);
 if (!fs.existsSync(dataDir)) {
