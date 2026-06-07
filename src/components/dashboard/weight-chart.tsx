@@ -1,57 +1,40 @@
 "use client";
 
+import { memo } from "react";
 import {
-  ResponsiveContainer,
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
 import type { WeightTrendPoint } from "@/types";
 
 interface WeightChartProps {
   data: WeightTrendPoint[];
 }
 
-export function WeightChart({ data }: WeightChartProps) {
-  if (data.length === 0) {
-    return (
-      <Card className="app-surface panel-hover group relative overflow-hidden rounded-2xl border border-black/10 bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] backdrop-blur-2xl">
-        <span className="absolute inset-0 z-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <CardHeader className="relative z-10 border-b border-black/5 pb-4">
-          <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-            Weight Loss Progression
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="relative z-10 pt-6">
-          <div className="flex h-[300px] items-center justify-center text-foreground/40">
-            Log your weight to see trends
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+function WeightChartComponent({ data }: WeightChartProps) {
   return (
-    <Card className="app-surface panel-hover group relative overflow-hidden rounded-2xl border border-black/10 bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] backdrop-blur-2xl">
-      <span className="absolute inset-0 z-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-      <CardHeader className="relative z-10 border-b border-black/5 pb-4">
-        <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-          <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)] animate-pulse" />
-          Weight Loss Progression
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="relative z-10 pt-6">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,rgba(255,100,0,0.05)_0%,transparent_70%)]" />
-        <ResponsiveContainer width="100%" height={300} className="relative z-10">
+    <DashboardPanel
+      title="Weight Loss Progression"
+      accentClassName="bg-primary"
+      contentClassName="pt-5"
+    >
+      {data.length === 0 ? (
+        <div className="flex h-[280px] items-center justify-center text-muted-foreground">
+          Log your weight to see trends
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={280}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="4 4" stroke="rgba(0,0,0,0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="4 4" stroke="oklch(0.32 0.018 250)" vertical={false} />
             <XAxis
               dataKey="date"
-              stroke="rgba(0,0,0,0.4)"
+              stroke="oklch(0.72 0.02 95)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -62,24 +45,22 @@ export function WeightChart({ data }: WeightChartProps) {
               }}
             />
             <YAxis
-              stroke="rgba(0,0,0,0.4)"
+              stroke="oklch(0.72 0.02 95)"
               fontSize={12}
               domain={["auto", "auto"]}
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              tickFormatter={(value) => `${value}`}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                border: "1px solid rgba(0, 0, 0, 0.1)",
-                borderRadius: "12px",
-                backdropFilter: "blur(12px)",
-                color: "#000",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                backgroundColor: "oklch(0.16 0.012 250)",
+                border: "1px solid oklch(0.32 0.018 250)",
+                borderRadius: "8px",
+                color: "oklch(0.96 0.01 95)",
+                boxShadow: "0 12px 28px rgba(0,0,0,0.28)",
               }}
-              itemStyle={{ color: "#000", fontWeight: 600 }}
+              itemStyle={{ color: "oklch(0.96 0.01 95)", fontWeight: 600 }}
               labelFormatter={(label) => {
                 const d = new Date(label + "T00:00:00");
                 return d.toLocaleDateString();
@@ -92,14 +73,16 @@ export function WeightChart({ data }: WeightChartProps) {
             <Line
               type="monotone"
               dataKey="weightLbs"
-              stroke="#ea580c"
+              stroke="oklch(0.69 0.19 43)"
               strokeWidth={3}
-              dot={{ fill: "#fff", stroke: "#ea580c", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: "#ea580c", stroke: "#fff", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(234,88,12,0.6)]" }}
+              dot={{ fill: "oklch(0.18 0.012 250)", stroke: "oklch(0.69 0.19 43)", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, fill: "oklch(0.69 0.19 43)", stroke: "oklch(0.96 0.01 95)", strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      )}
+    </DashboardPanel>
   );
 }
+
+export const WeightChart = memo(WeightChartComponent);

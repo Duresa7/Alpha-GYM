@@ -92,6 +92,7 @@ async function cloneTemplateItemsToPlannedWorkout(
       instruction: item.instruction,
       target: item.target,
       section: item.section,
+      groupLabel: item.groupLabel,
       isRequired: item.isRequired,
       orderIndex: item.orderIndex,
     }))
@@ -115,6 +116,7 @@ function mapTemplates<
     instruction: string | null;
     target: string | null;
     section: string;
+    groupLabel: string | null;
     isRequired: boolean;
     orderIndex: number;
   },
@@ -151,6 +153,7 @@ function mapPlannedWorkouts<
     instruction: string | null;
     target: string | null;
     section: string;
+    groupLabel: string | null;
     isRequired: boolean;
     completed: boolean;
     orderIndex: number;
@@ -238,6 +241,7 @@ export async function getWorkoutTemplates(): Promise<WorkoutTemplate[]> {
       instruction: workoutTemplateItems.instruction,
       target: workoutTemplateItems.target,
       section: workoutTemplateItems.section,
+      groupLabel: workoutTemplateItems.groupLabel,
       isRequired: workoutTemplateItems.isRequired,
       orderIndex: workoutTemplateItems.orderIndex,
     })
@@ -266,6 +270,7 @@ export async function createWorkoutTemplate(data: WorkoutTemplateValues) {
       instruction: item.instruction || null,
       target: item.target || null,
       section: item.section,
+      groupLabel: item.groupLabel || null,
       isRequired: item.isRequired,
       orderIndex: index + 1,
     }))
@@ -293,6 +298,7 @@ export async function duplicateWorkoutTemplate(templateId: number) {
       instruction: item.instruction || "",
       target: item.target || "",
       section: item.section,
+      groupLabel: item.groupLabel || "",
       isRequired: item.isRequired,
     })),
   });
@@ -348,6 +354,7 @@ export async function getPlannedWorkoutsForRange(dateFrom: string, dateTo: strin
           instruction: plannedWorkoutItems.instruction,
           target: plannedWorkoutItems.target,
           section: plannedWorkoutItems.section,
+          groupLabel: plannedWorkoutItems.groupLabel,
           isRequired: plannedWorkoutItems.isRequired,
           completed: plannedWorkoutItems.completed,
           orderIndex: plannedWorkoutItems.orderIndex,
@@ -358,6 +365,49 @@ export async function getPlannedWorkoutsForRange(dateFrom: string, dateTo: strin
     : [];
 
   return mapPlannedWorkouts(workouts, items);
+}
+
+export async function getPlannedWorkoutById(id: number): Promise<PlannedWorkout | null> {
+  const workouts = await db
+    .select({
+      id: plannedWorkouts.id,
+      date: plannedWorkouts.date,
+      templateId: plannedWorkouts.templateId,
+      title: plannedWorkouts.title,
+      notes: plannedWorkouts.notes,
+      status: plannedWorkouts.status,
+      missReason: plannedWorkouts.missReason,
+      carriedFromDate: plannedWorkouts.carriedFromDate,
+      estimatedDurationMin: plannedWorkouts.estimatedDurationMin,
+    })
+    .from(plannedWorkouts)
+    .where(eq(plannedWorkouts.id, id))
+    .limit(1);
+
+  if (!workouts[0]) {
+    return null;
+  }
+
+  const items = await db
+    .select({
+      id: plannedWorkoutItems.id,
+      plannedWorkoutId: plannedWorkoutItems.plannedWorkoutId,
+      templateItemId: plannedWorkoutItems.templateItemId,
+      itemType: plannedWorkoutItems.itemType,
+      exerciseName: plannedWorkoutItems.exerciseName,
+      instruction: plannedWorkoutItems.instruction,
+      target: plannedWorkoutItems.target,
+      section: plannedWorkoutItems.section,
+      groupLabel: plannedWorkoutItems.groupLabel,
+      isRequired: plannedWorkoutItems.isRequired,
+      completed: plannedWorkoutItems.completed,
+      orderIndex: plannedWorkoutItems.orderIndex,
+    })
+    .from(plannedWorkoutItems)
+    .where(eq(plannedWorkoutItems.plannedWorkoutId, id))
+    .orderBy(asc(plannedWorkoutItems.orderIndex));
+
+  return mapPlannedWorkouts(workouts, items)[0] ?? null;
 }
 
 export async function getTodayFocusData(): Promise<TodayFocusData> {
@@ -522,6 +572,7 @@ export async function carryForwardPlannedWorkout(id: number) {
               instruction: item.instruction,
               target: item.target,
               section: item.section,
+              groupLabel: item.groupLabel,
               isRequired: item.isRequired,
               completed: false,
               orderIndex: item.orderIndex,

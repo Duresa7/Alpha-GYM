@@ -4,25 +4,29 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  ClipboardEdit,
   CalendarDays,
+  ClipboardEdit,
   Dumbbell,
   History,
-  Settings,
+  LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/log", label: "Log Workout", icon: ClipboardEdit },
-  { href: "/plan", label: "Weekly Plan", icon: CalendarDays },
-  { href: "/exercises", label: "Exercises", icon: Dumbbell },
-  { href: "/history", label: "History", icon: History },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
+  { href: "/log", label: "Log Workout", shortLabel: "Log", icon: ClipboardEdit },
+  { href: "/plan", label: "Weekly Plan", shortLabel: "Plan", icon: CalendarDays },
+  { href: "/exercises", label: "Exercises", shortLabel: "Moves", icon: Dumbbell },
+  { href: "/history", label: "History", shortLabel: "History", icon: History },
+  { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
+
+function isRouteActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -31,81 +35,49 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 z-50 flex h-screen flex-col border-r border-black/5 bg-white/70 backdrop-blur-2xl transition-all duration-300",
-        collapsed ? "w-20" : "w-20 sm:w-64"
+        "sticky top-0 z-40 hidden h-screen flex-col border-r border-border bg-card md:flex",
+        collapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Decorative Gradient Line on the right edge */}
-      <div className="absolute inset-y-0 right-0 w-[1px] bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
-
-      <div className="relative flex h-24 items-center gap-4 border-b border-black/5 px-4 sm:px-6">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-50 mix-blend-multiply" />
-        <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary shadow-[0_0_20px_rgba(255,100,0,0.15)] neon-border-orange transition-transform duration-500 hover:scale-110 hover:shadow-[0_0_30px_rgba(255,100,0,0.3)]">
-          <Dumbbell className="h-6 w-6" strokeWidth={2.5} />
+      <div className="flex h-20 items-center gap-3 border-b border-border px-4">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md border border-primary/50 bg-primary text-primary-foreground">
+          <Dumbbell className="h-5 w-5" strokeWidth={2.5} />
         </div>
         {!collapsed && (
-          <span className="hidden text-2xl font-bold tracking-widest text-foreground font-[family-name:var(--font-barlow-condensed)] sm:block text-glow-orange">
+          <span className="text-2xl font-bold text-foreground font-[family-name:var(--font-barlow-condensed)]">
             ALPHA<span className="text-primary">GYM</span>
           </span>
         )}
       </div>
 
-      <nav className="flex-1 space-y-2 px-3 py-8 sm:px-4">
+      <nav className="flex-1 space-y-1 px-3 py-5">
         {navItems.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+          const isActive = isRouteActive(pathname, item.href);
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "group relative flex items-center gap-4 rounded-2xl px-3 py-3.5 text-sm font-semibold transition-all duration-300 cursor-pointer overflow-hidden",
-                collapsed
-                  ? "justify-center"
-                  : "justify-center sm:justify-start",
+                "group flex min-h-11 items-center gap-3 rounded-md border px-3 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-150",
+                collapsed ? "justify-center" : "justify-start",
                 isActive
-                  ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,100,0,0.2)] shadow-[0_4px_20px_rgba(255,100,0,0.05)]"
-                  : "text-foreground/70 hover:bg-black/5 hover:text-foreground"
+                  ? "border-primary/50 bg-primary text-primary-foreground"
+                  : "border-transparent text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground"
               )}
               title={collapsed ? item.label : undefined}
             >
-              {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
-              )}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 h-1/2 w-[3px] -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_10px_rgba(255,100,0,0.4)]" />
-              )}
-              <item.icon
-                className={cn(
-                  "relative z-10 h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
-                  isActive ? "text-primary drop-shadow-[0_0_8px_rgba(255,100,0,0.4)]" : ""
-                )}
-                strokeWidth={isActive ? 2.5 : 2}
-              />
-              {!collapsed && (
-                <span className="relative z-10 hidden tracking-wide sm:inline">
-                  {item.label}
-                </span>
-              )}
+              <item.icon className="h-5 w-5 flex-shrink-0" strokeWidth={2.25} />
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* Collapse toggle + footer */}
-      <div className="relative border-t border-black/5 px-3 py-4 sm:px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
-        {!collapsed && (
-          <p className="hidden text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/70 sm:block mb-3">
-            Track. <span className="text-primary drop-shadow-[0_0_5px_rgba(255,100,0,0.3)]">Push.</span> Progress.
-          </p>
-        )}
+      <div className="border-t border-border p-3">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 hidden w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-black/5 bg-white/60 px-3 py-2.5 text-xs font-semibold text-foreground/50 transition-all duration-200 hover:bg-black/5 hover:text-foreground sm:flex"
+          className="flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-secondary px-3 text-xs font-semibold text-muted-foreground transition-[background-color,color,border-color] hover:border-primary/40 hover:text-foreground"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
@@ -119,5 +91,34 @@ export function AppSidebar() {
         </button>
       </div>
     </aside>
+  );
+}
+
+export function MobileTabBar() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-border bg-card md:hidden">
+      {navItems.map((item) => {
+        const isActive = isRouteActive(pathname, item.href);
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex h-16 min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-[background-color,color] sm:text-xs",
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            )}
+            aria-label={item.label}
+          >
+            <item.icon className="h-5 w-5" strokeWidth={2.35} />
+            <span className="max-w-full truncate px-1">{item.shortLabel}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

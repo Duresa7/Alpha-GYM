@@ -21,6 +21,7 @@ export const workoutTemplateItems = sqliteTable("workout_template_items", {
   instruction: text("instruction"),
   target: text("target"),
   section: text("section").notNull().default("strength"),
+  groupLabel: text("group_label"),
   isRequired: integer("is_required", { mode: "boolean" }).notNull().default(true),
   orderIndex: integer("order_index").notNull(),
 });
@@ -53,6 +54,7 @@ export const plannedWorkoutItems = sqliteTable("planned_workout_items", {
   instruction: text("instruction"),
   target: text("target"),
   section: text("section").notNull().default("strength"),
+  groupLabel: text("group_label"),
   isRequired: integer("is_required", { mode: "boolean" }).notNull().default(true),
   completed: integer("completed", { mode: "boolean" }).notNull().default(false),
   orderIndex: integer("order_index").notNull(),

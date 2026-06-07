@@ -217,6 +217,7 @@ export const templateItemSchema = z.object({
   instruction: z.string().trim().optional(),
   target: z.string().trim().optional(),
   section: z.string().trim().min(1, "Section is required"),
+  groupLabel: z.string().trim().max(32).optional(),
   isRequired: z.boolean(),
 });
 

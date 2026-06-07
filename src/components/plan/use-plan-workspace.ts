@@ -154,6 +154,7 @@ export function usePlanWorkspace(
             instruction: item.instruction.trim(),
             target: item.target.trim(),
             section: item.section,
+            groupLabel: item.groupLabel.trim(),
             isRequired: item.isRequired,
           })),
         });

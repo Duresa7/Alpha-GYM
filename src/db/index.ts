@@ -17,4 +17,46 @@ if (!fs.existsSync(dataDir)) {
 const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
 
+function ensureColumn(tableName: string, columnName: string, definition: string) {
+  const table = sqlite
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(tableName);
+
+  if (!table) {
+    return;
+  }
+
+  const columns = sqlite.prepare(`PRAGMA table_info(${tableName})`).all() as {
+    name: string;
+  }[];
+
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.toLowerCase().includes("duplicate column")
+    ) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS user_settings (
+    id integer PRIMARY KEY AUTOINCREMENT,
+    key text NOT NULL UNIQUE,
+    value text NOT NULL
+  );
+`);
+
+ensureColumn("workout_template_items", "group_label", "text");
+ensureColumn("planned_workout_items", "group_label", "text");
+
 export const db = drizzle({ client: sqlite, schema });

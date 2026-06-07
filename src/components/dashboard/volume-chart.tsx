@@ -1,63 +1,40 @@
 "use client";
 
+import { memo } from "react";
 import {
-  ResponsiveContainer,
-  AreaChart,
   Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
 import type { VolumeTrendPoint } from "@/types";
 
 interface VolumeChartProps {
   data: VolumeTrendPoint[];
 }
 
-export function VolumeChart({ data }: VolumeChartProps) {
-  if (data.length === 0) {
-    return (
-      <Card className="app-surface panel-hover group relative overflow-hidden rounded-2xl border border-black/10 bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] backdrop-blur-2xl">
-        <span className="absolute inset-0 z-0 bg-gradient-to-br from-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <CardHeader className="relative z-10 border-b border-black/5 pb-4">
-          <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-            Exercise Volume
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="relative z-10 pt-6">
-          <div className="flex h-[300px] items-center justify-center text-foreground/40">
-            Log exercises to see volume trends
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+function VolumeChartComponent({ data }: VolumeChartProps) {
   return (
-    <Card className="app-surface panel-hover group relative overflow-hidden rounded-2xl border border-black/10 bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] backdrop-blur-2xl">
-      <span className="absolute inset-0 z-0 bg-gradient-to-br from-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-      <CardHeader className="relative z-10 border-b border-black/5 pb-4">
-        <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-xl tracking-wide text-foreground drop-shadow-sm">
-          <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)] animate-pulse" />
-          Exercise Volume
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="relative z-10 pt-6">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,rgba(0,180,255,0.05)_0%,transparent_70%)]" />
-        <ResponsiveContainer width="100%" height={300} className="relative z-10">
+    <DashboardPanel
+      title="Exercise Volume"
+      accentClassName="bg-accent"
+      contentClassName="pt-5"
+    >
+      {data.length === 0 ? (
+        <div className="flex h-[280px] items-center justify-center text-muted-foreground">
+          Log exercises to see volume trends
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={data}>
-            <defs>
-              <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#0284c7" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="4 4" stroke="rgba(0,0,0,0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="4 4" stroke="oklch(0.32 0.018 250)" vertical={false} />
             <XAxis
               dataKey="date"
-              stroke="rgba(0,0,0,0.4)"
+              stroke="oklch(0.72 0.02 95)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -68,7 +45,7 @@ export function VolumeChart({ data }: VolumeChartProps) {
               }}
             />
             <YAxis
-              stroke="rgba(0,0,0,0.4)"
+              stroke="oklch(0.72 0.02 95)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -79,37 +56,40 @@ export function VolumeChart({ data }: VolumeChartProps) {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                border: "1px solid rgba(0, 0, 0, 0.1)",
-                borderRadius: "12px",
-                backdropFilter: "blur(12px)",
-                color: "#000",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                backgroundColor: "oklch(0.16 0.012 250)",
+                border: "1px solid oklch(0.32 0.018 250)",
+                borderRadius: "8px",
+                color: "oklch(0.96 0.01 95)",
+                boxShadow: "0 12px 28px rgba(0,0,0,0.28)",
               }}
-              itemStyle={{ color: "#000", fontWeight: 600 }}
+              itemStyle={{ color: "oklch(0.96 0.01 95)", fontWeight: 600 }}
               labelFormatter={(label) => {
                 const d = new Date(label + "T00:00:00");
                 return d.toLocaleDateString();
               }}
               formatter={(value) => {
                 const volume = typeof value === "number" ? value : 0;
-                return [
-                  `${volume.toLocaleString()} lbs`,
-                  "Volume",
-                ];
+                return [`${volume.toLocaleString()} lbs`, "Volume"];
               }}
             />
             <Area
               type="monotone"
               dataKey="totalVolume"
-              stroke="#0284c7"
+              stroke="oklch(0.72 0.13 190)"
               strokeWidth={3}
-              fill="url(#volumeGradient)"
-              activeDot={{ r: 6, fill: "#0284c7", stroke: "#fff", strokeWidth: 2, className: "drop-shadow-[0_0_8px_rgba(2,132,199,0.5)]" }}
+              fill="oklch(0.72 0.13 190 / 0.18)"
+              activeDot={{
+                r: 6,
+                fill: "oklch(0.72 0.13 190)",
+                stroke: "oklch(0.96 0.01 95)",
+                strokeWidth: 2,
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      )}
+    </DashboardPanel>
   );
 }
+
+export const VolumeChart = memo(VolumeChartComponent);

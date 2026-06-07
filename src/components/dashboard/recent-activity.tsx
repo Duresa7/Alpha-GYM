@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { deleteActivityLog } from "@/actions/dashboard-actions";
 import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDisplayDate } from "@/lib/date";
 import type { RecentActivityEntry } from "@/types";
 
@@ -24,11 +24,11 @@ const typeLabels: Record<string, string> = {
 };
 
 const typeColors: Record<string, string> = {
-  exercise_only: "bg-primary/10 text-primary border-primary/20",
-  cardio_only: "bg-accent/10 text-[#0284c7] border-accent/20",
-  both: "bg-[#d946ef]/10 text-[#c026d3] border-[#d946ef]/20",
-  weight_only: "bg-[#f59e0b]/10 text-[#d97706] border-[#f59e0b]/20",
-  rest_day: "bg-black/5 text-foreground/50 border-black/10",
+  exercise_only: "bg-primary/10 text-primary border-primary/25",
+  cardio_only: "bg-cyan-500/10 text-cyan-300 border-cyan-500/25",
+  both: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/25",
+  weight_only: "bg-amber-500/10 text-amber-300 border-amber-500/25",
+  rest_day: "bg-secondary text-muted-foreground border-border",
 };
 
 export function RecentActivity({ entries }: RecentActivityProps) {
@@ -54,68 +54,69 @@ export function RecentActivity({ entries }: RecentActivityProps) {
   return (
     <DashboardPanel
       title="Recent Activity"
-      accentClassName="bg-[#10b981] text-[#10b981]"
-      contentClassName="relative z-10 pt-6"
+      accentClassName="bg-emerald-400"
+      contentClassName="pt-5"
     >
-        {entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 bg-white/50 p-8 text-center text-foreground/40">
-            <p>No workouts logged yet.</p>
-            <p className="text-sm mt-1">Head to Log Workout to start tracking.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="group/item relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-black/5 bg-white/60 p-4 transition-all duration-300 hover:-translate-y-1 hover:bg-white/80 hover:shadow-lg sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-white to-black/5 border border-black/10 shadow-sm">
-                    <span className="text-xs font-bold uppercase text-foreground/50">
-                      {formatDisplayDate(entry.date, { month: "short" })}
-                    </span>
-                    <span className="text-lg font-black text-foreground">
-                      {formatDisplayDate(entry.date, { day: "numeric" })}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-foreground/90">
-                      {formatDisplayDate(entry.date, { weekday: "long" })} Session
-                    </span>
-                    {entry.notes && (
-                      <span className="mt-1 line-clamp-1 max-w-[250px] text-xs text-foreground/50">
-                        {entry.notes}
-                      </span>
-                    )}
-                  </div>
+      {entries.length === 0 ? (
+        <div className="rounded-md border border-dashed border-border bg-secondary p-6 text-center text-muted-foreground">
+          <p>No workouts logged yet.</p>
+          <p className="mt-1 text-sm">Head to Log Workout to start tracking.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {entries.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex flex-col gap-3 rounded-md border border-border bg-secondary/70 p-3 transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/35 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 flex-col items-center justify-center rounded-md border border-border bg-card">
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    {formatDisplayDate(entry.date, { month: "short" })}
+                  </span>
+                  <span className="text-lg font-bold text-foreground">
+                    {formatDisplayDate(entry.date, { day: "numeric" })}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={`font-semibold tracking-wider px-3 py-1 ${typeColors[entry.workoutType] || typeColors.rest_day}`}
-                  >
-                    {typeLabels[entry.workoutType] || entry.workoutType}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(entry.id)}
-                    disabled={deletingId === entry.id}
-                    aria-label="Delete activity"
-                    title="Delete activity"
-                    className="cursor-pointer h-8 w-8 text-muted-foreground hover:text-destructive"
-                  >
-                    {deletingId === entry.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground">
+                    {entry.title ||
+                      `${formatDisplayDate(entry.date, { weekday: "long" })} Session`}
+                  </p>
+                  {entry.notes ? (
+                    <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                      {entry.notes}
+                    </p>
+                  ) : null}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={typeColors[entry.workoutType] || typeColors.rest_day}
+                >
+                  {typeLabels[entry.workoutType] || entry.workoutType}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(entry.id)}
+                  disabled={deletingId === entry.id}
+                  aria-label="Delete activity"
+                  title="Delete activity"
+                  className="h-9 w-9 cursor-pointer text-muted-foreground hover:text-destructive"
+                >
+                  {deletingId === entry.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </DashboardPanel>
   );
 }

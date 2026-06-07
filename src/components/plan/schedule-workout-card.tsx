@@ -35,7 +35,7 @@ export function ScheduleWorkoutCard({
 }: ScheduleWorkoutCardProps) {
   return (
     <Card className="app-surface">
-      <CardHeader>
+      <CardHeader className="border-b border-border pb-4">
         <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-xl">
           Schedule a Workout
         </CardTitle>
@@ -56,7 +56,7 @@ export function ScheduleWorkoutCard({
             value={scheduledTemplateId}
             onChange={(event) => onScheduleTemplateChange(event.target.value)}
             disabled={isPending}
-            className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            className="flat-field w-full"
           >
             <option value="">Custom / free-form</option>
             {templates.map((template) => (

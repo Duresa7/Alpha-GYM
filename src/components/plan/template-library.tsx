@@ -21,7 +21,7 @@ export function TemplateLibrary({
     <div className="grid gap-4 lg:grid-cols-2">
       {templates.map((template) => (
         <Card key={template.id} className="app-surface">
-          <CardHeader>
+          <CardHeader className="border-b border-border pb-4">
             <CardTitle className="flex items-center justify-between gap-3 font-[family-name:var(--font-barlow-condensed)] text-xl">
               <span>{template.name}</span>
               <Button
@@ -55,13 +55,14 @@ export function TemplateLibrary({
               {template.items.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-lg border border-black/5 bg-white/50 px-3 py-2 text-sm"
+                  className="rounded-md border border-border bg-secondary px-3 py-2 text-sm"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span>{item.exerciseName}</span>
                     <Badge variant="outline">{item.target || item.section}</Badge>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    {item.groupLabel ? <span>{item.groupLabel}</span> : null}
                     <span>{item.itemType}</span>
                     <span>{item.section}</span>
                     <span>{item.isRequired ? "required" : "optional"}</span>

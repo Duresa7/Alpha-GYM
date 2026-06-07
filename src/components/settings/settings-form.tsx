@@ -84,7 +84,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   return (
     <div className="space-y-6">
       <Card className="app-surface overflow-visible">
-        <CardHeader className="border-b border-black/5 pb-4">
+        <CardHeader className="border-b border-border pb-4">
           <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
             <Target className="h-5 w-5 text-primary" />
             Weight and Hydration Targets
@@ -107,7 +107,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       </Card>
 
       <Card className="app-surface overflow-visible">
-        <CardHeader className="border-b border-black/5 pb-4">
+        <CardHeader className="border-b border-border pb-4">
           <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
             <CalendarRange className="h-5 w-5 text-[#0ea5e9]" />
             Weekly Adherence Targets
@@ -129,7 +129,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       </Card>
 
       <Card className="app-surface overflow-visible">
-        <CardHeader className="border-b border-black/5 pb-4">
+        <CardHeader className="border-b border-border pb-4">
           <CardTitle className="flex items-center gap-3 font-[family-name:var(--font-barlow-condensed)] text-lg tracking-wide text-foreground">
             <Footprints className="h-5 w-5 text-emerald-600" />
             Daily Movement
