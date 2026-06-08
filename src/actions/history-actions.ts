@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { cardio, exercises, weightLog } from "@/db/schema";
+import { buildPersonalRecords } from "@/lib/personal-records";
 
 export async function getExerciseLogs() {
   return db
@@ -43,6 +44,20 @@ export async function getWeightLogs() {
     })
     .from(weightLog)
     .orderBy(desc(weightLog.date), desc(weightLog.id));
+}
+
+export async function getPersonalRecords() {
+  const rows = await db
+    .select({
+      date: exercises.date,
+      exerciseName: exercises.exerciseName,
+      sets: exercises.sets,
+      weightLbs: exercises.weightLbs,
+      reps: exercises.reps,
+    })
+    .from(exercises);
+
+  return buildPersonalRecords(rows);
 }
 
 export async function deleteExerciseLog(id: number) {

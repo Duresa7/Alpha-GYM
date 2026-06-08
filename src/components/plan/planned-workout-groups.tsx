@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDisplayDate } from "@/lib/date";
 import type { PlannedWorkout } from "@/types";
@@ -17,7 +20,7 @@ export function PlannedWorkoutGroups({
     <div className="grid gap-4 lg:grid-cols-2">
       {Object.entries(groupedWorkouts).map(([date, workouts]) => (
         <Card key={date} className="app-surface">
-          <CardHeader>
+          <CardHeader className="border-b border-border pb-4">
             <CardTitle className="flex items-center justify-between gap-3 text-lg font-[family-name:var(--font-barlow-condensed)]">
               <span>
                 {formatDisplayDate(date, {
@@ -33,7 +36,7 @@ export function PlannedWorkoutGroups({
             {workouts.map((workout) => (
               <div
                 key={workout.id}
-                className="rounded-xl border border-black/5 bg-white/50 p-4"
+                className="rounded-md border border-border bg-secondary p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -51,9 +54,18 @@ export function PlannedWorkoutGroups({
                     {workout.status.replace("_", " ")}
                   </Badge>
                 </div>
+                {workout.status === "pending" ? (
+                  <Link href={`/workout/${workout.id}`} className="mt-3 inline-flex">
+                    <Button variant="outline" size="sm" className="cursor-pointer">
+                      <Play className="h-4 w-4" />
+                      Start
+                    </Button>
+                  </Link>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {workout.items.slice(0, 4).map((item) => (
                     <Badge key={item.id} variant="outline">
+                      {item.groupLabel ? `${item.groupLabel}: ` : ""}
                       {item.exerciseName}
                       {!item.isRequired ? " (optional)" : ""}
                     </Badge>

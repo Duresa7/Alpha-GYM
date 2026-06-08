@@ -30,7 +30,7 @@ export function DayCard({ dayOfWeek, items, isToday }: DayCardProps) {
   return (
     <Card
       className={cn(
-        "app-surface panel-hover transition-all duration-200",
+        "app-surface panel-hover transition-[border-color,box-shadow,transform] duration-200",
         isToday && "border-primary/55 ring-2 ring-primary/20"
       )}
     >
@@ -66,7 +66,7 @@ export function DayCard({ dayOfWeek, items, isToday }: DayCardProps) {
               {sectionItems.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm"
+                className="flex items-center justify-between rounded-md border border-border bg-secondary px-2.5 py-1.5 text-sm"
                 >
                   <span>{item.exerciseName}</span>
                   {item.setsReps && (

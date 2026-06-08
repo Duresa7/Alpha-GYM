@@ -235,7 +235,7 @@ export function QuickEntryForm({
         ? data.cardioEntries.filter(isCompleteCardioEntry)
         : [];
 
-      await submitWorkoutLog({
+      const result = await submitWorkoutLog({
         ...data,
         exercises: cleanExercises,
         cardioEntries: cleanCardioEntries,
@@ -244,7 +244,14 @@ export function QuickEntryForm({
           : "unplanned",
       });
 
-      toast.success("Workout logged.");
+      if (result.personalRecords.length > 0) {
+        const firstRecord = result.personalRecords[0];
+        toast.success(
+          `New PR: ${firstRecord.exerciseName} ${firstRecord.newBest}`
+        );
+      } else {
+        toast.success("Workout logged.");
+      }
       form.reset(buildDefaults(undefined));
       router.refresh();
     } catch {
@@ -262,7 +269,7 @@ export function QuickEntryForm({
       className="space-y-6"
     >
       <Card className="app-surface">
-        <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 xl:grid-cols-4">
+        <CardContent className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Date</label>
             <DatePicker
@@ -361,13 +368,13 @@ export function QuickEntryForm({
 
       {selectedWorkout ? (
         <Card className="app-surface">
-          <CardHeader className="pb-3">
+          <CardHeader className="border-b border-border pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
               Planned Workout
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-xl border border-black/5 bg-white/50 p-4">
+            <div className="rounded-md border border-border bg-secondary p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-lg font-semibold">{selectedWorkout.title}</p>
@@ -414,7 +421,7 @@ export function QuickEntryForm({
                 {selectedWorkout.items.map((item) => (
                   <span
                     key={item.id}
-                    className="rounded-full border border-black/10 bg-white/70 px-3 py-1 text-xs"
+                    className="rounded-md border border-border bg-card px-3 py-1.5 text-xs"
                   >
                     {item.exerciseName}
                     {item.target ? ` • ${item.target}` : ""}
@@ -429,7 +436,7 @@ export function QuickEntryForm({
                 value={skipReason}
                 onChange={(event) => setSkipReason(event.target.value)}
                 disabled={planActionLoading}
-                className="flex h-10 rounded-md border border-input bg-white/70 px-3 py-2 text-sm"
+                className="flat-field"
               >
                 {SKIP_REASONS.map((reason) => (
                   <option key={reason} value={reason}>
@@ -477,13 +484,13 @@ export function QuickEntryForm({
       ) : null}
 
       <Card className="app-surface">
-        <CardHeader className="pb-3">
+        <CardHeader className="border-b border-border pb-3">
           <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
             Body Weight
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-40">
+          <div className="max-w-xs">
             <Input
               type="number"
               step="0.1"
@@ -498,7 +505,7 @@ export function QuickEntryForm({
 
       {showExercises ? (
         <Card className="app-surface">
-          <CardHeader className="pb-3">
+          <CardHeader className="border-b border-border pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
               Exercises
             </CardTitle>
@@ -520,9 +527,9 @@ export function QuickEntryForm({
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => appendExercise(emptyExercise())}
-                  className="cursor-pointer"
+                  className="min-h-11 cursor-pointer"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Exercise
@@ -535,7 +542,7 @@ export function QuickEntryForm({
 
       {showCardio ? (
         <Card className="app-surface">
-          <CardHeader className="pb-3">
+          <CardHeader className="border-b border-border pb-3">
             <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
               Cardio
             </CardTitle>
@@ -556,9 +563,9 @@ export function QuickEntryForm({
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => appendCardio(emptyCardio())}
-                  className="cursor-pointer"
+                  className="min-h-11 cursor-pointer"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Cardio
@@ -570,7 +577,7 @@ export function QuickEntryForm({
       ) : null}
 
       <Card className="app-surface">
-        <CardHeader className="pb-3">
+        <CardHeader className="border-b border-border pb-3">
           <CardTitle className="text-base font-[family-name:var(--font-barlow-condensed)]">
             Notes
           </CardTitle>
@@ -586,7 +593,7 @@ export function QuickEntryForm({
       <Button
         type="submit"
         disabled={loading}
-        className="w-full cursor-pointer bg-accent text-accent-foreground hover:bg-accent/90"
+        className="min-h-12 w-full cursor-pointer bg-accent text-accent-foreground hover:bg-accent/90"
         size="lg"
       >
         {loading ? (

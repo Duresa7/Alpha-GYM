@@ -43,6 +43,23 @@ export interface ExerciseLogEntry {
   reps: number;
 }
 
+export interface PersonalRecord {
+  exerciseName: string;
+  bestWeight: number;
+  bestWeightDate: string;
+  bestEstimatedOneRepMax: number;
+  bestEstimatedOneRepMaxDate: string;
+  bestVolume: number;
+  bestVolumeDate: string;
+}
+
+export interface NewPersonalRecord {
+  exerciseName: string;
+  recordType: "weight" | "estimated_1rm" | "volume";
+  previousBest: number | null;
+  newBest: number;
+}
+
 export interface CardioLogEntry {
   id: number;
   sessionId: number | null;
@@ -107,6 +124,7 @@ export interface WorkoutTemplateItem {
   instruction: string | null;
   target: string | null;
   section: string;
+  groupLabel: string | null;
   isRequired: boolean;
   orderIndex: number;
 }
@@ -130,6 +148,7 @@ export interface PlannedWorkoutItem {
   instruction: string | null;
   target: string | null;
   section: string;
+  groupLabel: string | null;
   isRequired: boolean;
   completed: boolean;
   orderIndex: number;

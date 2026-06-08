@@ -13,12 +13,14 @@ import {
   workoutSessions,
 } from "@/db/schema";
 import { DASHBOARD_REVALIDATE_PATHS } from "@/lib/domain";
+import { findNewPersonalRecords } from "@/lib/personal-records";
 import type {
   CardioEntry,
   ExerciseEntry,
   QuickEntryFormValues,
   WeeklyCheckInValues,
 } from "@/lib/validators";
+import type { NewPersonalRecord } from "@/types";
 
 function isPositiveNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -74,6 +76,27 @@ export async function submitWorkoutLog(data: QuickEntryFormValues) {
   const loggedNames = new Set<string>();
   const normalizedExerciseEntries = normalizeExerciseEntries(exerciseEntries);
   const normalizedCardioEntries = normalizeCardioEntries(cardioEntries);
+  const existingExerciseRows = normalizedExerciseEntries.length
+    ? await db
+        .select({
+          date: exercises.date,
+          exerciseName: exercises.exerciseName,
+          sets: exercises.sets,
+          weightLbs: exercises.weightLbs,
+          reps: exercises.reps,
+        })
+        .from(exercises)
+    : [];
+  const personalRecords: NewPersonalRecord[] = findNewPersonalRecords(
+    existingExerciseRows,
+    normalizedExerciseEntries.map((entry) => ({
+      date,
+      exerciseName: entry.exerciseName,
+      sets: entry.sets,
+      weightLbs: entry.weightLbs,
+      reps: entry.reps,
+    }))
+  );
 
   normalizedExerciseEntries.forEach((entry) => loggedNames.add(entry.exerciseName));
   normalizedCardioEntries.forEach((entry) => loggedNames.add(entry.cardioType));
@@ -172,7 +195,45 @@ export async function submitWorkoutLog(data: QuickEntryFormValues) {
   });
 
   revalidateWorkoutViews();
-  return { success: true };
+  return { success: true, personalRecords };
+}
+
+export async function completeActiveWorkout(data: {
+  plannedWorkoutId: number;
+  title: string;
+  date: string;
+  notes?: string;
+  exercises: Array<{
+    exerciseName: string;
+    sets: number;
+    weightLbs: number;
+    reps: number;
+  }>;
+  cardioEntries: Array<{
+    cardioType: string;
+    durationMin: number;
+  }>;
+}) {
+  const workoutType =
+    data.exercises.length > 0 && data.cardioEntries.length > 0
+      ? "both"
+      : data.exercises.length > 0
+        ? "exercise_only"
+        : data.cardioEntries.length > 0
+          ? "cardio_only"
+          : "rest_day";
+
+  return submitWorkoutLog({
+    date: data.date,
+    sessionTitle: data.title,
+    plannedWorkoutId: data.plannedWorkoutId,
+    planCompletionMode: "completed",
+    workoutType,
+    bodyWeight: undefined,
+    exercises: data.exercises,
+    cardioEntries: data.cardioEntries,
+    notes: data.notes ?? "",
+  });
 }
 
 export async function submitWeeklyCheckIn(values: WeeklyCheckInValues) {

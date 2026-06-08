@@ -8,7 +8,9 @@ import { StrengthProgression } from "@/components/dashboard/weight-progression";
 import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { TodayFocusCard } from "@/components/dashboard/today-focus-card";
 import { WeeklyCheckInCard } from "@/components/dashboard/weekly-check-in-card";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
 import {
+  getRecentActivity,
   getStats,
   getWeightTrend,
   getVolumeTrend,
@@ -46,6 +48,7 @@ export default async function DashboardPage({
     waterEntries,
     todayFocus,
     checkInInsight,
+    recentActivity,
   ] = await Promise.all([
     getStats(),
     getWeightTrend(),
@@ -57,6 +60,7 @@ export default async function DashboardPage({
     getTodayWaterEntries(),
     getTodayFocusData(),
     getWeeklyCheckInInsight(),
+    getRecentActivity(6),
   ]);
 
   const progression = await getStrengthProgression(
@@ -67,32 +71,32 @@ export default async function DashboardPage({
     {
       key: "today-focus",
       component: <TodayFocusCard data={todayFocus} />,
-      defaultLayout: { x: 0, y: 0, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "level",
       component: <WeightLossLevelCard level={level} goalStatus={goalStatus} />,
-      defaultLayout: { x: 2, y: 0, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "weight-chart",
       component: <WeightChart data={weightTrend} />,
-      defaultLayout: { x: 0, y: 4, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "water",
       component: <WaterTracker status={waterStatus} todayEntries={waterEntries} />,
-      defaultLayout: { x: 2, y: 4, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "volume-chart",
       component: <VolumeChart data={volumeTrend} />,
-      defaultLayout: { x: 0, y: 8, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "check-in",
       component: <WeeklyCheckInCard insight={checkInInsight} />,
-      defaultLayout: { x: 2, y: 8, w: 2, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-2",
     },
     {
       key: "strength-progression",
@@ -103,7 +107,12 @@ export default async function DashboardPage({
           selectedExercise={selectedExercise || progressionOptions[0]}
         />
       ),
-      defaultLayout: { x: 0, y: 12, w: 4, h: 4, minW: 2, minH: 3 },
+      className: "dashboard-span-4",
+    },
+    {
+      key: "recent-activity",
+      component: <RecentActivity entries={recentActivity} />,
+      className: "dashboard-span-4",
     },
   ];
 

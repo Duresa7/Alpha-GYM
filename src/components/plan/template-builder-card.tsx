@@ -46,7 +46,7 @@ export function TemplateBuilderCard({
 }: TemplateBuilderCardProps) {
   return (
     <Card className="app-surface">
-      <CardHeader>
+      <CardHeader className="border-b border-border pb-4">
         <CardTitle className="font-[family-name:var(--font-barlow-condensed)] text-xl">
           Build a Template
         </CardTitle>
@@ -100,9 +100,9 @@ export function TemplateBuilderCard({
           {draftItems.map((item, index) => (
             <div
               key={`${index}-${item.exerciseName}`}
-              className="rounded-xl border border-black/5 bg-white/50 p-4"
-            >
-              <div className="grid gap-3 md:grid-cols-5">
+            className="rounded-md border border-border bg-secondary p-4"
+          >
+              <div className="grid gap-3 md:grid-cols-6">
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Type
@@ -115,7 +115,7 @@ export function TemplateBuilderCard({
                       })
                     }
                     disabled={isPending}
-                    className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                    className="flat-field w-full"
                   >
                     <option value="exercise">Exercise</option>
                     <option value="cardio">Cardio</option>
@@ -160,7 +160,7 @@ export function TemplateBuilderCard({
                       onUpdateDraftItem(index, { section: event.target.value })
                     }
                     disabled={isPending}
-                    className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                    className="flat-field w-full"
                   >
                     {templateSectionOptions.map((option) => (
                       <option key={option} value={option}>
@@ -168,6 +168,21 @@ export function TemplateBuilderCard({
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                    Group
+                  </label>
+                  <Input
+                    value={item.groupLabel}
+                    onChange={(event) =>
+                      onUpdateDraftItem(index, {
+                        groupLabel: event.target.value,
+                      })
+                    }
+                    disabled={isPending}
+                    placeholder="A1"
+                  />
                 </div>
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">

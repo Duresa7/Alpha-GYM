@@ -7,11 +7,12 @@ export interface TemplateDraftItem {
   instruction: string;
   target: string;
   section: keyof typeof SECTION_COLORS;
+  groupLabel: string;
   isRequired: boolean;
 }
 
 export const statusTone: Record<PlannedWorkoutStatus, string> = {
-  pending: "bg-black/5 text-foreground/60 border-black/10",
+  pending: "bg-secondary text-muted-foreground border-border",
   completed: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   partial: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   skipped: "bg-rose-500/10 text-rose-600 border-rose-500/20",
@@ -29,6 +30,7 @@ export function emptyDraftItem(): TemplateDraftItem {
     instruction: "",
     target: "",
     section: "strength",
+    groupLabel: "",
     isRequired: true,
   };
 }

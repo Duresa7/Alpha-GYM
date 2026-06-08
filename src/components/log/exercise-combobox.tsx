@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EXERCISE_CATEGORY_LABELS } from "@/lib/constants";
@@ -32,11 +32,16 @@ export function ExerciseCombobox({
 }: ExerciseComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const grouped: Record<string, { name: string; category: string }[]> = {};
-  for (const ex of exerciseNames) {
-    if (!grouped[ex.category]) grouped[ex.category] = [];
-    grouped[ex.category].push(ex);
-  }
+  const grouped = useMemo(() => {
+    const groups: Record<string, { name: string; category: string }[]> = {};
+    for (const ex of exerciseNames) {
+      if (!groups[ex.category]) {
+        groups[ex.category] = [];
+      }
+      groups[ex.category].push(ex);
+    }
+    return groups;
+  }, [exerciseNames]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -45,13 +50,13 @@ export function ExerciseCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between cursor-pointer"
+          className="min-h-11 w-full justify-between cursor-pointer"
         >
           {value || "Select exercise..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[min(92vw,360px)] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search exercises..." />
           <CommandList>
