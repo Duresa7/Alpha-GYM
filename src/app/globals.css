@@ -234,6 +234,9 @@
     .dashboard-span-2 {
       grid-column: span 2 / span 2;
     }
+    .dashboard-span-4 {
+      grid-column: span 2 / span 2;
+    }
   }
 
   @media (min-width: 1280px) {

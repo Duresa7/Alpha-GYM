@@ -187,7 +187,7 @@ export function PlateCalculator() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {settings.inventory.map((plate, index) => (
               <div
-                key={plate.weight}
+                key={index}
                 className="grid grid-cols-[1fr_88px] items-end gap-2 rounded-md border border-border bg-secondary p-3"
               >
                 <div>
